@@ -493,6 +493,64 @@ class TaskController {
       });
     }
   }
+
+  // Get tasks by status (API endpoint)
+  async getTasksByStatus(req, res) {
+    try {
+      const { status, date } = req.query;
+      const queryDate = date ? dayjs(date).toDate() : new Date();
+
+      let tasks = await taskService.getTasksForDate(req.user._id, queryDate);
+
+      // Set isOverdue property on each task
+      const now = new Date();
+      tasks.forEach(task => {
+        if (task.status === 'pending') {
+          const taskDate = new Date(task.date);
+          if (task.dueTime) {
+            const [hours, minutes] = task.dueTime.split(':');
+            taskDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          } else {
+            taskDate.setHours(23, 59, 59, 999);
+          }
+          task.isOverdue = now > taskDate;
+        } else {
+          task.isOverdue = false;
+        }
+      });
+
+      // Filter tasks based on status
+      let filteredTasks = [];
+      switch (status) {
+        case 'all':
+          filteredTasks = tasks;
+          break;
+        case 'pending':
+          filteredTasks = tasks.filter(t => t.status === 'pending');
+          break;
+        case 'completed':
+          filteredTasks = tasks.filter(t => t.status === 'completed');
+          break;
+        case 'overdue':
+          filteredTasks = tasks.filter(t => t.isOverdue);
+          break;
+        default:
+          filteredTasks = tasks;
+      }
+
+      res.json({
+        success: true,
+        tasks: filteredTasks,
+        count: filteredTasks.length,
+      });
+    } catch (error) {
+      console.error('Get tasks by status error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'An error occurred while fetching tasks.',
+      });
+    }
+  }
 }
 
 module.exports = new TaskController();
