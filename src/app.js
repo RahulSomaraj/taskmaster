@@ -6,6 +6,7 @@ const compression = require('compression');
 const morgan = require('morgan');
 const csrf = require('csurf');
 const rateLimit = require('express-rate-limit');
+const methodOverride = require('method-override');
 const path = require('path');
 require('dotenv').config();
 
@@ -26,17 +27,29 @@ const PORT = process.env.PORT || 3000;
 connectDB();
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdn.tailwindcss.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://cdn.tailwindcss.com',
+          'https://cdn.jsdelivr.net',
+        ],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://cdn.jsdelivr.net',
+          'https://cdn.tailwindcss.com',
+        ],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+      },
     },
-  },
-}));
+  })
+);
 
 // Compression middleware
 app.use(compression());
@@ -56,20 +69,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60, // 1 day
-  }),
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-  },
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 24 * 60 * 60, // 1 day
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    },
+  })
+);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -84,6 +99,9 @@ app.use('/auth', limiter);
 
 // CSRF protection
 app.use(csrf({ cookie: false }));
+
+// Method override middleware
+app.use(methodOverride('_method'));
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -113,7 +131,7 @@ app.use((req, res) => {
     title: 'Page Not Found',
     message: 'The page you are looking for does not exist.',
     status: 404,
-    error: undefined
+    error: undefined,
   });
 });
 

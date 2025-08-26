@@ -28,12 +28,21 @@ class TaskService {
 
   // Get monthly tasks summary
   async getMonthlyTasks(userId, year, month) {
-    const startDate = dayjs().year(year).month(month - 1).startOf('month').toDate();
-    const endDate = dayjs().year(year).month(month - 1).endOf('month').toDate();
+    const startDate = dayjs()
+      .year(year)
+      .month(month - 1)
+      .startOf('month')
+      .toDate();
+    const endDate = dayjs()
+      .year(year)
+      .month(month - 1)
+      .endOf('month')
+      .toDate();
 
     const tasks = await Task.find({
       userId,
-      date: { $gte: startDate, $lte: endDate }
+      date: { $gte: startDate, $lte: endDate },
+      deletedAt: null, // Exclude soft-deleted tasks
     }).sort({ date: 1 });
 
     // Group tasks by day
@@ -50,7 +59,7 @@ class TaskService {
         completed: 0,
         pending: 0,
         cancelled: 0,
-        completionRate: 0
+        completionRate: 0,
       };
       currentDate.add(1, 'day');
     }
@@ -61,7 +70,7 @@ class TaskService {
       if (tasksByDay[dateKey]) {
         tasksByDay[dateKey].tasks.push(task);
         tasksByDay[dateKey].total++;
-        
+
         switch (task.status) {
           case 'completed':
             tasksByDay[dateKey].completed++;
@@ -88,11 +97,10 @@ class TaskService {
 
   // Update a task
   async updateTask(taskId, userId, updateData) {
-    return await Task.findOneAndUpdate(
-      { _id: taskId, userId },
-      updateData,
-      { new: true, runValidators: true }
-    );
+    return await Task.findOneAndUpdate({ _id: taskId, userId }, updateData, {
+      new: true,
+      runValidators: true,
+    });
   }
 
   // Mark task as completed
@@ -122,9 +130,22 @@ class TaskService {
     return await task.resetToPending();
   }
 
-  // Delete a task
+  // Delete a task (soft delete)
   async deleteTask(taskId, userId) {
-    return await Task.findOneAndDelete({ _id: taskId, userId });
+    const task = await Task.findOne({ _id: taskId, userId });
+    if (!task) {
+      throw new Error('Task not found');
+    }
+    return await task.softDelete();
+  }
+
+  // Restore a soft-deleted task
+  async restoreTask(taskId, userId) {
+    const task = await Task.findOne({ _id: taskId, userId, deletedAt: { $ne: null } });
+    if (!task) {
+      throw new Error('Task not found or not deleted');
+    }
+    return await task.restore();
   }
 
   // Get overdue tasks
@@ -136,7 +157,8 @@ class TaskService {
   async getTaskStats(userId, startDate, endDate) {
     const tasks = await Task.find({
       userId,
-      date: { $gte: startDate, $lte: endDate }
+      date: { $gte: startDate, $lte: endDate },
+      deletedAt: null, // Exclude soft-deleted tasks
     });
 
     const stats = {
@@ -148,7 +170,7 @@ class TaskService {
       byPriority: { low: 0, medium: 0, high: 0 },
       byCategory: {},
       averageCompletionTime: 0,
-      completionRate: 0
+      completionRate: 0,
     };
 
     let totalCompletionTime = 0;
@@ -157,21 +179,21 @@ class TaskService {
     tasks.forEach(task => {
       // Count by status
       stats[task.status]++;
-      
+
       // Count by priority
       stats.byPriority[task.priority]++;
-      
+
       // Count by category
       if (!stats.byCategory[task.category]) {
         stats.byCategory[task.category] = 0;
       }
       stats.byCategory[task.category]++;
-      
+
       // Check if overdue
       if (task.isOverdue) {
         stats.overdue++;
       }
-      
+
       // Calculate completion time
       if (task.status === 'completed' && task.completionTimeMinutes) {
         totalCompletionTime += task.completionTimeMinutes;
@@ -183,7 +205,7 @@ class TaskService {
     if (completedTasks > 0) {
       stats.averageCompletionTime = Math.round(totalCompletionTime / completedTasks);
     }
-    
+
     if (stats.total > 0) {
       stats.completionRate = Math.round((stats.completed / stats.total) * 100);
     }
@@ -194,27 +216,27 @@ class TaskService {
   // Get tasks with filters
   async getTasksWithFilters(userId, filters) {
     const query = { userId };
-    
+
     if (filters.status && filters.status !== 'all') {
       query.status = filters.status;
     }
-    
+
     if (filters.category) {
       query.category = filters.category;
     }
-    
+
     if (filters.priority && filters.priority !== 'all') {
       query.priority = filters.priority;
     }
-    
+
     if (filters.tags && filters.tags.length > 0) {
       query.tags = { $in: filters.tags };
     }
-    
+
     if (filters.dateFrom && filters.dateTo) {
       query.date = {
         $gte: new Date(filters.dateFrom),
-        $lte: new Date(filters.dateTo)
+        $lte: new Date(filters.dateTo),
       };
     }
 
@@ -225,15 +247,20 @@ class TaskService {
   async bulkCompleteTasks(taskIds, userId) {
     return await Task.updateMany(
       { _id: { $in: taskIds }, userId },
-      { 
+      {
         status: 'completed',
-        completedAt: new Date()
+        completedAt: new Date(),
       }
     );
   }
 
   async bulkDeleteTasks(taskIds, userId) {
-    return await Task.deleteMany({ _id: { $in: taskIds }, userId });
+    return await Task.updateMany(
+      { _id: { $in: taskIds }, userId },
+      {
+        deletedAt: new Date(),
+      }
+    );
   }
 }
 

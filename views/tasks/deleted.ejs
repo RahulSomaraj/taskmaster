@@ -1,0 +1,148 @@
+<%- include('../partials/header', { title: 'Deleted Tasks' }) %>
+
+<div class="min-h-screen bg-gradient-to-br from-[#00CED1]/5 via-white to-[#20B2AA]/10">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="mb-6 lg:mb-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-r from-[#00CED1] to-[#20B2AA] rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-trash-restore text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Deleted Tasks</h1>
+                            <p class="text-gray-600 mt-1">Manage your soft-deleted tasks</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center space-x-2">
+                    <a href="/tasks/daily" class="bg-[#00CED1] text-white px-4 py-2 rounded-lg hover:bg-[#00B8BA] transition-all duration-200 shadow-md hover:shadow-lg">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Tasks
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deleted Tasks List -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Soft-Deleted Tasks</h3>
+                    <p class="text-gray-600">Tasks that have been deleted but can be restored</p>
+                </div>
+                
+                <div class="task-list">
+                    <% if (deletedTasks && deletedTasks.length > 0) { %>
+                        <div class="space-y-4">
+                            <% deletedTasks.forEach(function(task) { %>
+                                <div class="task-card deleted" data-task-id="<%= task._id %>">
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-200">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex items-start space-x-4 flex-1">
+                                                <!-- Deleted Icon -->
+                                                <div class="flex-shrink-0">
+                                                    <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-trash text-white text-sm"></i>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Task Content -->
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-start justify-between mb-2">
+                                                        <h4 class="text-lg font-semibold text-gray-500 line-through">
+                                                            <%= task.title %>
+                                                        </h4>
+                                                        <div class="flex items-center space-x-2">
+                                                            <!-- Priority Badge -->
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= task.priority === 'high' ? 'bg-red-100 text-red-800' : task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
+                                                                <i class="fas <%= task.priority === 'high' ? 'fa-fire' : task.priority === 'medium' ? 'fa-clock' : 'fa-leaf' %> mr-1"></i>
+                                                                <%= task.priority.charAt(0).toUpperCase() + task.priority.slice(1) %>
+                                                            </span>
+                                                            
+                                                            <!-- Category Badge -->
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#00CED1]/10 text-[#00CED1] border border-[#00CED1]/20">
+                                                                <i class="fas fa-tag mr-1"></i>
+                                                                <%= task.category.charAt(0).toUpperCase() + task.category.slice(1) %>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <% if (task.description) { %>
+                                                        <p class="text-gray-400 mb-3 line-through">
+                                                            <%= task.description %>
+                                                        </p>
+                                                    <% } %>
+                                                    
+                                                    <!-- Task Meta -->
+                                                    <div class="flex items-center space-x-6 text-sm text-gray-400">
+                                                        <span class="flex items-center">
+                                                            <i class="fas fa-calendar mr-2"></i>
+                                                            <%= new Date(task.date).toLocaleDateString() %>
+                                                        </span>
+                                                        
+                                                        <% if (task.dueTime) { %>
+                                                            <span class="flex items-center">
+                                                                <i class="fas fa-clock mr-2"></i>
+                                                                <%= task.dueTime %>
+                                                            </span>
+                                                        <% } %>
+                                                        
+                                                        <span class="flex items-center">
+                                                            <i class="fas fa-trash mr-2"></i>
+                                                            Deleted: <%= new Date(task.deletedAt).toLocaleDateString() %>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Actions -->
+                                            <div class="flex items-center space-x-2 ml-4">
+                                                <form action="/tasks/<%= task._id %>/restore" method="POST" class="inline">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <button type="submit" class="text-gray-400 hover:text-green-600 p-2 rounded-lg hover:bg-green-50 transition-all duration-200" title="Restore Task">
+                                                        <i class="fas fa-undo"></i>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form action="/tasks/<%= task._id %>/permanent-delete" method="POST" class="inline" onsubmit="return confirmPermanentDelete(event)">
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <button type="submit" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Permanently Delete">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-12">
+                            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-trash text-gray-400 text-3xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No deleted tasks</h3>
+                            <p class="text-gray-600">No tasks have been deleted yet</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmPermanentDelete(event) {
+    if (!confirm('Are you sure you want to permanently delete this task? This action cannot be undone and the task will be lost forever.')) {
+        event.preventDefault();
+        return false;
+    }
+    return true;
+}
+</script>
+
+<%- include('../partials/footer') %>

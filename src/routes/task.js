@@ -13,6 +13,9 @@ router.get('/daily', taskController.showDaily);
 // Show monthly tasks
 router.get('/monthly', taskController.showMonthly);
 
+// Show deleted tasks
+router.get('/deleted', taskController.showDeletedTasks);
+
 // Show task form (create)
 router.get('/create', taskController.showTaskForm);
 
@@ -36,6 +39,9 @@ router.post('/:id/reset', taskController.resetTask);
 
 // Delete task
 router.delete('/:id', taskController.deleteTask);
+
+// Restore soft-deleted task
+router.post('/:id/restore', taskController.restoreTask);
 
 // Bulk complete tasks
 router.post('/bulk/complete', taskController.bulkComplete);

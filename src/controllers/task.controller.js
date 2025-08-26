@@ -7,14 +7,31 @@ class TaskController {
     try {
       const date = req.query.date ? dayjs(req.query.date).toDate() : new Date();
       const tasks = await taskService.getTasksForDate(req.user._id, date);
-      
+
+      // Set isOverdue property on each task for EJS template
+      const now = new Date();
+      tasks.forEach(task => {
+        if (task.status === 'pending') {
+          const taskDate = new Date(task.date);
+          if (task.dueTime) {
+            const [hours, minutes] = task.dueTime.split(':');
+            taskDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          } else {
+            taskDate.setHours(23, 59, 59, 999);
+          }
+          task.isOverdue = now > taskDate;
+        } else {
+          task.isOverdue = false;
+        }
+      });
+
       // Calculate statistics
       const stats = {
         total: tasks.length,
         completed: tasks.filter(t => t.status === 'completed').length,
         pending: tasks.filter(t => t.status === 'pending').length,
         cancelled: tasks.filter(t => t.status === 'cancelled').length,
-        overdue: tasks.filter(t => t.isOverdue).length
+        overdue: tasks.filter(t => t.isOverdue).length,
       };
 
       res.render('tasks/daily', {
@@ -22,15 +39,23 @@ class TaskController {
         tasks,
         stats,
         selectedDate: dayjs(date).format('YYYY-MM-DD'),
-        categories: ['work', 'personal', 'health', 'finance', 'education', 'shopping', 'travel', 'other'],
-        priorities: ['low', 'medium', 'high']
+        categories: [
+          'work',
+          'personal',
+          'health',
+          'finance',
+          'education',
+          'shopping',
+          'travel',
+          'other',
+        ],
+        priorities: ['low', 'medium', 'high'],
       });
-
     } catch (error) {
       console.error('Daily tasks error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading tasks.'
+        message: 'An error occurred while loading tasks.',
       };
       res.redirect('/');
     }
@@ -41,7 +66,7 @@ class TaskController {
     try {
       const year = parseInt(req.query.year) || dayjs().year();
       const month = parseInt(req.query.month) || dayjs().month() + 1;
-      
+
       const monthlyTasks = await taskService.getMonthlyTasks(req.user._id, year, month);
 
       res.render('tasks/monthly', {
@@ -49,16 +74,34 @@ class TaskController {
         monthlyTasks,
         selectedYear: year,
         selectedMonth: month,
-        currentDate: dayjs()
+        currentDate: dayjs(),
       });
-
     } catch (error) {
       console.error('Monthly tasks error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading monthly view.'
+        message: 'An error occurred while loading monthly view.',
       };
       res.redirect('/');
+    }
+  }
+
+  // Show deleted tasks page
+  async showDeletedTasks(req, res) {
+    try {
+      const deletedTasks = await taskService.getDeletedTasks(req.user._id);
+
+      res.render('tasks/deleted', {
+        title: 'Deleted Tasks',
+        deletedTasks,
+      });
+    } catch (error) {
+      console.error('Deleted tasks error:', error);
+      req.session.flash = {
+        type: 'error',
+        message: 'An error occurred while loading deleted tasks.',
+      };
+      res.redirect('/tasks/daily');
     }
   }
 
@@ -74,7 +117,7 @@ class TaskController {
         if (!task) {
           req.session.flash = {
             type: 'error',
-            message: 'Task not found.'
+            message: 'Task not found.',
           };
           return res.redirect('/tasks/daily');
         }
@@ -85,15 +128,23 @@ class TaskController {
         title: isEdit ? 'Edit Task' : 'Create Task',
         task,
         isEdit,
-        categories: ['work', 'personal', 'health', 'finance', 'education', 'shopping', 'travel', 'other'],
-        priorities: ['low', 'medium', 'high']
+        categories: [
+          'work',
+          'personal',
+          'health',
+          'finance',
+          'education',
+          'shopping',
+          'travel',
+          'other',
+        ],
+        priorities: ['low', 'medium', 'high'],
       });
-
     } catch (error) {
       console.error('Task form error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading the form.'
+        message: 'An error occurred while loading the form.',
       };
       res.redirect('/tasks/daily');
     }
@@ -107,16 +158,15 @@ class TaskController {
 
       req.session.flash = {
         type: 'success',
-        message: 'Task created successfully.'
+        message: 'Task created successfully.',
       };
 
       res.redirect(`/tasks/daily?date=${dayjs(taskData.date).format('YYYY-MM-DD')}`);
-
     } catch (error) {
       console.error('Create task error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while creating the task.'
+        message: 'An error occurred while creating the task.',
       };
       res.redirect('/tasks/daily');
     }
@@ -132,23 +182,22 @@ class TaskController {
       if (!task) {
         req.session.flash = {
           type: 'error',
-          message: 'Task not found.'
+          message: 'Task not found.',
         };
         return res.redirect('/tasks/daily');
       }
 
       req.session.flash = {
         type: 'success',
-        message: 'Task updated successfully.'
+        message: 'Task updated successfully.',
       };
 
       res.redirect(`/tasks/daily?date=${dayjs(task.date).format('YYYY-MM-DD')}`);
-
     } catch (error) {
       console.error('Update task error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while updating the task.'
+        message: 'An error occurred while updating the task.',
       };
       res.redirect('/tasks/daily');
     }
@@ -167,31 +216,30 @@ class TaskController {
           task: {
             id: task._id,
             status: task.status,
-            completedAt: task.completedAt
-          }
+            completedAt: task.completedAt,
+          },
         });
       }
 
       req.session.flash = {
         type: 'success',
-        message: 'Task completed successfully.'
+        message: 'Task completed successfully.',
       };
 
       res.redirect('back');
-
     } catch (error) {
       console.error('Complete task error:', error);
-      
+
       if (req.xhr) {
         return res.status(400).json({
           success: false,
-          message: 'An error occurred while completing the task.'
+          message: 'An error occurred while completing the task.',
         });
       }
 
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while completing the task.'
+        message: 'An error occurred while completing the task.',
       };
       res.redirect('back');
     }
@@ -209,31 +257,30 @@ class TaskController {
           message: 'Task cancelled successfully.',
           task: {
             id: task._id,
-            status: task.status
-          }
+            status: task.status,
+          },
         });
       }
 
       req.session.flash = {
         type: 'success',
-        message: 'Task cancelled successfully.'
+        message: 'Task cancelled successfully.',
       };
 
       res.redirect('back');
-
     } catch (error) {
       console.error('Cancel task error:', error);
-      
+
       if (req.xhr) {
         return res.status(400).json({
           success: false,
-          message: 'An error occurred while cancelling the task.'
+          message: 'An error occurred while cancelling the task.',
         });
       }
 
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while cancelling the task.'
+        message: 'An error occurred while cancelling the task.',
       };
       res.redirect('back');
     }
@@ -251,31 +298,30 @@ class TaskController {
           message: 'Task reset to pending.',
           task: {
             id: task._id,
-            status: task.status
-          }
+            status: task.status,
+          },
         });
       }
 
       req.session.flash = {
         type: 'success',
-        message: 'Task reset to pending.'
+        message: 'Task reset to pending.',
       };
 
       res.redirect('back');
-
     } catch (error) {
       console.error('Reset task error:', error);
-      
+
       if (req.xhr) {
         return res.status(400).json({
           success: false,
-          message: 'An error occurred while resetting the task.'
+          message: 'An error occurred while resetting the task.',
         });
       }
 
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while resetting the task.'
+        message: 'An error occurred while resetting the task.',
       };
       res.redirect('back');
     }
@@ -290,7 +336,7 @@ class TaskController {
       if (!task) {
         req.session.flash = {
           type: 'error',
-          message: 'Task not found.'
+          message: 'Task not found.',
         };
         return res.redirect('/tasks/daily');
       }
@@ -298,30 +344,71 @@ class TaskController {
       if (req.xhr) {
         return res.json({
           success: true,
-          message: 'Task deleted successfully.'
+          message: 'Task deleted successfully.',
         });
       }
 
       req.session.flash = {
         type: 'success',
-        message: 'Task deleted successfully.'
+        message: 'Task deleted successfully.',
       };
 
       res.redirect('back');
-
     } catch (error) {
       console.error('Delete task error:', error);
-      
+
       if (req.xhr) {
         return res.status(400).json({
           success: false,
-          message: 'An error occurred while deleting the task.'
+          message: 'An error occurred while deleting the task.',
         });
       }
 
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while deleting the task.'
+        message: 'An error occurred while deleting the task.',
+      };
+      res.redirect('back');
+    }
+  }
+
+  // Restore soft-deleted task
+  async restoreTask(req, res) {
+    try {
+      const taskId = req.params.id;
+      const task = await taskService.restoreTask(taskId, req.user._id);
+
+      if (req.xhr) {
+        return res.json({
+          success: true,
+          message: 'Task restored successfully.',
+          task: {
+            id: task._id,
+            title: task.title,
+            status: task.status,
+          },
+        });
+      }
+
+      req.session.flash = {
+        type: 'success',
+        message: 'Task restored successfully.',
+      };
+
+      res.redirect('back');
+    } catch (error) {
+      console.error('Restore task error:', error);
+
+      if (req.xhr) {
+        return res.status(400).json({
+          success: false,
+          message: 'An error occurred while restoring the task.',
+        });
+      }
+
+      req.session.flash = {
+        type: 'error',
+        message: 'An error occurred while restoring the task.',
       };
       res.redirect('back');
     }
@@ -331,11 +418,11 @@ class TaskController {
   async bulkComplete(req, res) {
     try {
       const { taskIds } = req.body;
-      
+
       if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'No tasks selected.'
+          message: 'No tasks selected.',
         });
       }
 
@@ -343,14 +430,13 @@ class TaskController {
 
       res.json({
         success: true,
-        message: `${taskIds.length} task(s) completed successfully.`
+        message: `${taskIds.length} task(s) completed successfully.`,
       });
-
     } catch (error) {
       console.error('Bulk complete error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while completing tasks.'
+        message: 'An error occurred while completing tasks.',
       });
     }
   }
@@ -359,11 +445,11 @@ class TaskController {
   async bulkDelete(req, res) {
     try {
       const { taskIds } = req.body;
-      
+
       if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'No tasks selected.'
+          message: 'No tasks selected.',
         });
       }
 
@@ -371,14 +457,13 @@ class TaskController {
 
       res.json({
         success: true,
-        message: `${taskIds.length} task(s) deleted successfully.`
+        message: `${taskIds.length} task(s) deleted successfully.`,
       });
-
     } catch (error) {
       console.error('Bulk delete error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while deleting tasks.'
+        message: 'An error occurred while deleting tasks.',
       });
     }
   }
@@ -398,14 +483,13 @@ class TaskController {
 
       res.json({
         success: true,
-        data: tasks
+        data: tasks,
       });
-
     } catch (error) {
       console.error('Get tasks error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching tasks.'
+        message: 'An error occurred while fetching tasks.',
       });
     }
   }

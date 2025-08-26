@@ -18,7 +18,13 @@
     "seed": "node src/utils/seed.js",
     "healthcheck": "node src/utils/healthcheck.js"
   },
-  "keywords": ["todo", "analytics", "dashboard", "express", "mongodb"],
+  "keywords": [
+    "todo",
+    "analytics",
+    "dashboard",
+    "express",
+    "mongodb"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
@@ -33,6 +39,7 @@
     "morgan": "^1.10.0",
     "csurf": "^1.11.0",
     "express-rate-limit": "^7.1.5",
+    "method-override": "^3.0.0",
     "zod": "^3.22.4",
     "dayjs": "^1.11.10",
     "multer": "^1.4.5-lts.1",

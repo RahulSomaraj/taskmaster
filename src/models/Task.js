@@ -56,6 +56,10 @@ const taskSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -112,6 +116,18 @@ taskSchema.methods.resetToPending = function () {
   return this.save();
 };
 
+// Instance method for soft delete
+taskSchema.methods.softDelete = function () {
+  this.deletedAt = new Date();
+  return this.save();
+};
+
+// Instance method to restore soft-deleted task
+taskSchema.methods.restore = function () {
+  this.deletedAt = null;
+  return this.save();
+};
+
 // Static method to get tasks for a specific date
 taskSchema.statics.getTasksForDate = function (userId, date) {
   const startOfDay = new Date(date);
@@ -123,6 +139,7 @@ taskSchema.statics.getTasksForDate = function (userId, date) {
   return this.find({
     userId,
     date: { $gte: startOfDay, $lte: endOfDay },
+    deletedAt: null, // Exclude soft-deleted tasks
   }).sort({ priority: -1, createdAt: 1 });
 };
 
@@ -133,6 +150,7 @@ taskSchema.statics.getOverdueTasks = function (userId) {
     userId,
     status: 'pending',
     date: { $lt: now },
+    deletedAt: null, // Exclude soft-deleted tasks
   }).sort({ date: 1 });
 };
 
@@ -147,7 +165,25 @@ taskSchema.statics.getTasksForDateRange = function (userId, startDate, endDate) 
   return this.find({
     userId,
     date: { $gte: start, $lte: end },
+    deletedAt: null, // Exclude soft-deleted tasks
   }).sort({ date: 1, priority: -1 });
+};
+
+// Static method to get all tasks (including soft-deleted for admin purposes)
+taskSchema.statics.getAllTasks = function (userId, includeDeleted = false) {
+  const query = { userId };
+  if (!includeDeleted) {
+    query.deletedAt = null;
+  }
+  return this.find(query).sort({ createdAt: -1 });
+};
+
+// Static method to get soft-deleted tasks
+taskSchema.statics.getDeletedTasks = function (userId) {
+  return this.find({
+    userId,
+    deletedAt: { $ne: null },
+  }).sort({ deletedAt: -1 });
 };
 
 // Pre-save middleware to validate date format
