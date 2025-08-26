@@ -1,0 +1,347 @@
+<%- include('../partials/header', { title: 'Profile' }) %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Profile</h1>
+          <p class="text-gray-600 mt-2">Manage your account settings and preferences</p>
+        </div>
+        <div class="flex space-x-3">
+          <a href="/tasks/daily" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Tasks
+          </a>
+          <form method="POST" action="/auth/logout" class="inline" id="profileLogoutForm">
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200" onclick="return confirmLogout(event)">
+              <i class="fas fa-sign-out-alt mr-2"></i>
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Information -->
+    <div class="bg-white rounded-lg shadow-sm border mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Account Information</h2>
+      </div>
+      
+      <form method="POST" action="/profile" class="p-6">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        
+        <!-- Name -->
+        <div class="mb-6">
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+            Full Name <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            value="<%= user.name %>"
+            class="form-input w-full <%= errors.name ? 'border-red-500' : '' %>"
+            placeholder="Enter your full name"
+            required
+            maxlength="100"
+          >
+          <% if (errors.name) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.name %></p>
+          <% } %>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-6">
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            Email Address <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            value="<%= user.email %>"
+            class="form-input w-full <%= errors.email ? 'border-red-500' : '' %>"
+            placeholder="Enter your email address"
+            required
+            maxlength="255"
+          >
+          <% if (errors.email) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.email %></p>
+          <% } %>
+          <p class="text-gray-500 text-sm mt-1">Your email address is used for login and notifications</p>
+        </div>
+
+        <!-- Role (read-only for regular users) -->
+        <div class="mb-6">
+          <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+            Account Role
+          </label>
+          <input 
+            type="text" 
+            id="role" 
+            value="<%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>"
+            class="form-input w-full bg-gray-50"
+            readonly
+          >
+          <p class="text-gray-500 text-sm mt-1">
+            <% if (user.role === 'admin') { %>
+              You have administrator privileges
+            <% } else { %>
+              Standard user account
+            <% } %>
+          </p>
+        </div>
+
+        <!-- Account Created -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Member Since
+          </label>
+          <input 
+            type="text" 
+            value="<%= dayjs(user.createdAt).format('MMMM DD, YYYY') %>"
+            class="form-input w-full bg-gray-50"
+            readonly
+          >
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+          <a href="/tasks/daily" class="btn btn-secondary">
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Update Profile
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="bg-white rounded-lg shadow-sm border mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Change Password</h2>
+      </div>
+      
+      <form method="POST" action="/change-password" class="p-6">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        
+        <!-- Current Password -->
+        <div class="mb-6">
+          <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">
+            Current Password <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="password" 
+            id="currentPassword" 
+            name="currentPassword" 
+            class="form-input w-full <%= errors.currentPassword ? 'border-red-500' : '' %>"
+            placeholder="Enter your current password"
+            required
+          >
+          <% if (errors.currentPassword) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.currentPassword %></p>
+          <% } %>
+        </div>
+
+        <!-- New Password -->
+        <div class="mb-6">
+          <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">
+            New Password <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            name="newPassword" 
+            class="form-input w-full <%= errors.newPassword ? 'border-red-500' : '' %>"
+            placeholder="Enter your new password"
+            required
+            minlength="8"
+          >
+          <% if (errors.newPassword) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.newPassword %></p>
+          <% } %>
+          <p class="text-gray-500 text-sm mt-1">Password must be at least 8 characters long</p>
+        </div>
+
+        <!-- Confirm New Password -->
+        <div class="mb-6">
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+            Confirm New Password <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            class="form-input w-full <%= errors.confirmPassword ? 'border-red-500' : '' %>"
+            placeholder="Confirm your new password"
+            required
+            minlength="8"
+          >
+          <% if (errors.confirmPassword) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.confirmPassword %></p>
+          <% } %>
+        </div>
+
+        <!-- Password Strength Indicator -->
+        <div class="mb-6">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="text-sm font-medium text-gray-700">Password Strength:</span>
+            <div id="passwordStrength" class="flex space-x-1">
+              <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+            </div>
+            <span id="strengthText" class="text-sm text-gray-500">Weak</span>
+          </div>
+          <div class="text-xs text-gray-500">
+            <p>Strong passwords include:</p>
+            <ul class="list-disc list-inside ml-2 mt-1">
+              <li>At least 8 characters</li>
+              <li>Mix of uppercase and lowercase letters</li>
+              <li>Numbers and special characters</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+          <button type="button" onclick="resetPasswordForm()" class="btn btn-secondary">
+            Reset
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+            </svg>
+            Change Password
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Account Statistics -->
+    <div class="bg-white rounded-lg shadow-sm border">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Account Statistics</h2>
+      </div>
+      
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600"><%= stats.totalTasks || 0 %></div>
+            <div class="text-sm text-gray-600">Total Tasks</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600"><%= stats.completedTasks || 0 %></div>
+            <div class="text-sm text-gray-600">Completed</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-yellow-600"><%= stats.daysActive || 0 %></div>
+            <div class="text-sm text-gray-600">Days Active</div>
+          </div>
+        </div>
+        
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Account Status:</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Active
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-sm mt-2">
+            <span class="text-gray-600">Last Login:</span>
+            <span class="text-gray-900"><%= dayjs().format('MMM DD, YYYY HH:mm') %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Password strength checker
+function checkPasswordStrength(password) {
+  let strength = 0;
+  const strengthTexts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
+  
+  if (password.length >= 8) strength++;
+  if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+  if (password.match(/\d/)) strength++;
+  if (password.match(/[^a-zA-Z\d]/)) strength++;
+  if (password.length >= 12) strength++;
+  
+  return {
+    level: Math.min(strength, 4),
+    text: strengthTexts[Math.min(strength, 4)],
+    color: strengthColors[Math.min(strength, 4)]
+  };
+}
+
+function updatePasswordStrength() {
+  const password = document.getElementById('newPassword').value;
+  const strength = checkPasswordStrength(password);
+  const strengthIndicator = document.getElementById('passwordStrength');
+  const strengthText = document.getElementById('strengthText');
+  
+  // Update strength dots
+  strengthIndicator.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const dot = document.createElement('div');
+    dot.className = `w-2 h-2 rounded-full ${i <= strength.level ? strength.color : 'bg-gray-300'}`;
+    strengthIndicator.appendChild(dot);
+  }
+  
+  // Update strength text
+  strengthText.textContent = strength.text;
+  strengthText.className = `text-sm ${strength.level >= 3 ? 'text-green-600' : strength.level >= 2 ? 'text-yellow-600' : 'text-red-600'}`;
+}
+
+function resetPasswordForm() {
+  document.getElementById('currentPassword').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  updatePasswordStrength();
+}
+
+// Event listeners
+document.getElementById('newPassword').addEventListener('input', updatePasswordStrength);
+
+// Form validation
+document.querySelector('form[action="/change-password"]').addEventListener('submit', function(e) {
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  
+  if (newPassword !== confirmPassword) {
+    e.preventDefault();
+    alert('New passwords do not match');
+    return;
+  }
+  
+  if (newPassword.length < 8) {
+    e.preventDefault();
+    alert('Password must be at least 8 characters long');
+    return;
+  }
+  
+  const strength = checkPasswordStrength(newPassword);
+  if (strength.level < 2) {
+    if (!confirm('Your password is weak. Are you sure you want to continue?')) {
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
+// Initialize password strength
+updatePasswordStrength();
+</script>
+
+<%- include('../partials/footer') %>

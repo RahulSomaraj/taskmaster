@@ -1,0 +1,90 @@
+<%- include('partials/header', { title: 'Error' }) %>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div class="text-center">
+      <!-- Error Icon -->
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      
+      <!-- Error Title -->
+      <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+        <%= status || 500 %>
+      </h2>
+      
+      <!-- Error Message -->
+      <p class="mt-2 text-sm text-gray-600">
+        <%= message || 'Something went wrong. Please try again.' %>
+      </p>
+      
+      <!-- Additional Info for 404 -->
+      <% if (status === 404) { %>
+        <div class="mt-4 p-4 bg-blue-50 rounded-md">
+          <p class="text-sm text-blue-700">
+            The page you're looking for might have been moved, deleted, or you entered the wrong URL.
+          </p>
+        </div>
+      <% } %>
+      
+      <!-- Action Buttons -->
+      <div class="mt-8 space-y-4">
+        <a href="/" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          Go Home
+        </a>
+        
+        <button onclick="history.back()" class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Go Back
+        </button>
+      </div>
+      
+      <!-- Help Section -->
+      <div class="mt-8 pt-8 border-t border-gray-200">
+        <h3 class="text-sm font-medium text-gray-900">Need Help?</h3>
+        <p class="mt-2 text-sm text-gray-600">
+          If you continue to experience issues, please contact support or try refreshing the page.
+        </p>
+        <div class="mt-4 flex justify-center space-x-4">
+          <button onclick="location.reload()" class="text-sm text-blue-600 hover:text-blue-500">
+            Refresh Page
+          </button>
+          <span class="text-gray-300">|</span>
+          <a href="mailto:support@todoapp.com" class="text-sm text-blue-600 hover:text-blue-500">
+            Contact Support
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-refresh for 5xx errors after 10 seconds
+<% if (status >= 500) { %>
+  setTimeout(() => {
+    if (confirm('The page will refresh automatically. Click OK to refresh now or Cancel to stay on this page.')) {
+      location.reload();
+    }
+  }, 10000);
+<% } %>
+
+// Log error details for debugging (in development)
+<% if (process.env.NODE_ENV === 'development' && typeof error !== 'undefined' && error) { %>
+  console.error('Error Details:', {
+    status: <%= status || 500 %>,
+    message: '<%= message || 'Unknown error' %>',
+    stack: '<%= error.stack || '' %>',
+    timestamp: new Date().toISOString()
+  });
+<% } %>
+</script>
+
+<%- include('partials/footer') %>

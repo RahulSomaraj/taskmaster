@@ -1,0 +1,335 @@
+<%- include('../partials/header', { title: 'Dashboard' }) %>
+
+<div class="container mx-auto px-4 py-8">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-600">Your productivity analytics and insights</p>
+        </div>
+        
+        <div class="mt-4 sm:mt-0 flex space-x-2">
+            <button onclick="refreshDashboard()" class="btn btn-outline">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh
+            </button>
+            <a href="/dashboard/reports" class="btn btn-primary">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="kpi-card primary">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Current Streak</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="currentStreak">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="kpi-card success">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Monthly Completion</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="monthlyCompletion">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="kpi-card warning">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Avg Completion Time</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="avgCompletionTime">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="kpi-card danger">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Overdue Tasks</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="overdueCount">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Avg Tasks/Day</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="avgTasksPerDay">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Completion Rate Trend -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Completion Rate Trend (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="completionRateChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weekly Created vs Completed -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Weekly Created vs Completed (Last 12 Weeks)</h3>
+            <div class="chart-container">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Tasks by Category (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Priority Breakdown -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Tasks by Priority (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="priorityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let charts = {};
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+async function loadDashboardData() {
+    try {
+        showLoading(document.querySelector('main'));
+        
+        const response = await fetch('/dashboard/api/data');
+        const result = await response.json();
+        
+        if (result.success) {
+            updateKPIs(result.data.kpis);
+            createCharts(result.data);
+        } else {
+            showError('Failed to load dashboard data');
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showError('Failed to load dashboard data');
+    }
+}
+
+function updateKPIs(kpis) {
+    document.getElementById('currentStreak').textContent = kpis.currentStreak + ' days';
+    document.getElementById('monthlyCompletion').textContent = kpis.monthlyCompletionRate + '%';
+    document.getElementById('avgCompletionTime').textContent = kpis.averageCompletionTime + ' min';
+    document.getElementById('overdueCount').textContent = kpis.overdueCount;
+    document.getElementById('avgTasksPerDay').textContent = kpis.averageTasksPerDay;
+}
+
+function createCharts(data) {
+    // Completion Rate Trend Chart
+    const completionCtx = document.getElementById('completionRateChart').getContext('2d');
+    charts.completionRate = new Chart(completionCtx, {
+        type: 'line',
+        data: {
+            labels: data.completionRateTrend.map(item => item.date),
+            datasets: [{
+                label: 'Completion Rate (%)',
+                data: data.completionRateTrend.map(item => item.completionRate),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    charts.weekly = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: data.weeklyData.map(item => item.week),
+            datasets: [
+                {
+                    label: 'Created',
+                    data: data.weeklyData.map(item => item.created),
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Completed',
+                    data: data.weeklyData.map(item => item.completed),
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgb(34, 197, 94)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    charts.category = new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: data.categoryBreakdown.map(item => item.category),
+            datasets: [{
+                data: data.categoryBreakdown.map(item => item.count),
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(168, 85, 247, 0.8)',
+                    'rgba(236, 72, 153, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(107, 114, 128, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Priority Chart
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    charts.priority = new Chart(priorityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: data.priorityBreakdown.map(item => item.priority),
+            datasets: [{
+                data: data.priorityBreakdown.map(item => item.count),
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function refreshDashboard() {
+    // Destroy existing charts
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            chart.destroy();
+        }
+    });
+    charts = {};
+    
+    // Reload data
+    loadDashboardData();
+}
+</script>
+
+<%- include('../partials/footer') %>

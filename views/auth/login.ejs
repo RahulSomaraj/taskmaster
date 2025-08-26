@@ -1,0 +1,204 @@
+<%- include('../partials/header') %>
+
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-tasks text-white text-2xl"></i>
+            </div>
+            <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                Welcome back
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Sign in to your TaskMaster Pro account
+            </p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            <form class="space-y-6" method="POST" action="/auth/login">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Address
+                    </label>
+                    <div class="relative">
+                        <input 
+                            id="email" 
+                            name="email" 
+                            type="email" 
+                            required 
+                            class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-200 hover:border-blue-300"
+                            placeholder="Enter your email"
+                            value="<%= locals.email || '' %>"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-blue-600"></i>Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            id="password" 
+                            name="password" 
+                            type="password" 
+                            required 
+                            class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-200 hover:border-blue-300"
+                            placeholder="Enter your password"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button 
+                                type="button" 
+                                id="togglePassword"
+                                class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input 
+                            id="remember" 
+                            name="remember" 
+                            type="checkbox" 
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        >
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            Forgot password?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button 
+                        type="submit" 
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-sign-in-alt text-blue-300 group-hover:text-blue-200"></i>
+                        </span>
+                        Sign in
+                    </button>
+                </div>
+
+                <!-- Demo Account Info -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-3"></i>
+                        <div class="text-sm text-blue-800">
+                            <p class="font-medium mb-1">Demo Account Available</p>
+                            <p class="text-blue-700">Email: <code class="bg-blue-100 px-1 rounded">demo@demo.com</code></p>
+                            <p class="text-blue-700">Password: <code class="bg-blue-100 px-1 rounded">Demo@123</code></p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">New to TaskMaster Pro?</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register Link -->
+            <div class="mt-6">
+                <a 
+                    href="/auth/register" 
+                    class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                >
+                    <i class="fas fa-user-plus mr-2 text-blue-600"></i>
+                    Create new account
+                </a>
+            </div>
+        </div>
+
+        <!-- Features Preview -->
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                <i class="fas fa-shield-alt mr-1"></i>
+                Secure authentication powered by bcrypt
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password visibility toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        // Real-time validation
+        emailInput.addEventListener('blur', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (email && !emailRegex.test(email)) {
+                this.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                this.classList.remove('border-gray-300', 'focus:ring-blue-500', 'focus:border-blue-500');
+            } else {
+                this.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                this.classList.add('border-gray-300', 'focus:ring-blue-500', 'focus:border-blue-500');
+            }
+        });
+
+        // Form submission enhancement
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing in...';
+            submitBtn.disabled = true;
+            
+            // Re-enable after 3 seconds if no response
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 3000);
+        });
+
+        // Auto-focus email field
+        emailInput.focus();
+    });
+</script>
+
+<%- include('../partials/footer') %>

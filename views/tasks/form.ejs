@@ -1,0 +1,415 @@
+<%- include('../partials/header', { title: task ? 'Edit Task' : 'Create Task' }) %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <%= task ? 'Edit Task' : 'Create New Task' %>
+          </h1>
+          <p class="text-gray-600 mt-2">
+            <%= task ? 'Update your task details' : 'Add a new task to your list' %>
+          </p>
+        </div>
+        <a href="<%= task ? `/tasks/daily?date=${task.date.toISOString().split('T')[0]}` : '/tasks/daily' %>" class="btn btn-secondary">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back
+        </a>
+      </div>
+    </div>
+
+    <!-- Task Form -->
+    <div class="bg-white rounded-lg shadow-sm border">
+      <form method="POST" action="<%= task ? `/tasks/${task._id}` : '/tasks' %>" class="p-6">
+        <input type="hidden" name="_method" value="<%= task ? 'PUT' : 'POST' %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <!-- Title -->
+        <div class="mb-6">
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+            Task Title <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="title" 
+            name="title" 
+            value="<%= task ? task.title : '' %>"
+            class="form-input w-full <%= errors.title ? 'border-red-500' : '' %>"
+            placeholder="Enter task title"
+            required
+            maxlength="100"
+          >
+          <% if (errors.title) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.title %></p>
+          <% } %>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea 
+            id="description" 
+            name="description" 
+            rows="3"
+            class="form-textarea w-full <%= errors.description ? 'border-red-500' : '' %>"
+            placeholder="Add a description for your task (optional)"
+            maxlength="500"
+          ><%= task ? task.description : '' %></textarea>
+          <% if (errors.description) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.description %></p>
+          <% } %>
+          <p class="text-gray-500 text-sm mt-1">
+            <span id="descriptionCount">0</span>/500 characters
+          </p>
+        </div>
+
+        <!-- Date and Time -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
+              Date <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              id="date" 
+              name="date" 
+              value="<%= task ? task.date.toISOString().split('T')[0] : (query.date || '') %>"
+              class="form-input w-full <%= errors.date ? 'border-red-500' : '' %>"
+              required
+            >
+            <% if (errors.date) { %>
+              <p class="text-red-500 text-sm mt-1"><%= errors.date %></p>
+            <% } %>
+          </div>
+
+          <div>
+            <label for="dueTime" class="block text-sm font-medium text-gray-700 mb-2">
+              Due Time
+            </label>
+            <input 
+              type="time" 
+              id="dueTime" 
+              name="dueTime" 
+              value="<%= task ? task.dueTime : '' %>"
+              class="form-input w-full <%= errors.dueTime ? 'border-red-500' : '' %>"
+            >
+            <% if (errors.dueTime) { %>
+              <p class="text-red-500 text-sm mt-1"><%= errors.dueTime %></p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Priority and Category -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <select 
+              id="priority" 
+              name="priority" 
+              class="form-select w-full <%= errors.priority ? 'border-red-500' : '' %>"
+            >
+              <option value="low" <%= task && task.priority === 'low' ? 'selected' : '' %>>Low</option>
+              <option value="medium" <%= (!task || task.priority === 'medium') ? 'selected' : '' %>>Medium</option>
+              <option value="high" <%= task && task.priority === 'high' ? 'selected' : '' %>>High</option>
+              <option value="urgent" <%= task && task.priority === 'urgent' ? 'selected' : '' %>>Urgent</option>
+            </select>
+            <% if (errors.priority) { %>
+              <p class="text-red-500 text-sm mt-1"><%= errors.priority %></p>
+            <% } %>
+          </div>
+
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select 
+              id="category" 
+              name="category" 
+              class="form-select w-full <%= errors.category ? 'border-red-500' : '' %>"
+            >
+              <option value="work" <%= task && task.category === 'work' ? 'selected' : '' %>>Work</option>
+              <option value="personal" <%= task && task.category === 'personal' ? 'selected' : '' %>>Personal</option>
+              <option value="health" <%= task && task.category === 'health' ? 'selected' : '' %>>Health</option>
+              <option value="learning" <%= task && task.category === 'learning' ? 'selected' : '' %>>Learning</option>
+              <option value="finance" <%= task && task.category === 'finance' ? 'selected' : '' %>>Finance</option>
+              <option value="other" <%= (!task || task.category === 'other') ? 'selected' : '' %>>Other</option>
+            </select>
+            <% if (errors.category) { %>
+              <p class="text-red-500 text-sm mt-1"><%= errors.category %></p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Estimated Time -->
+        <div class="mb-6">
+          <label for="estimatedMinutes" class="block text-sm font-medium text-gray-700 mb-2">
+            Estimated Time (minutes)
+          </label>
+          <input 
+            type="number" 
+            id="estimatedMinutes" 
+            name="estimatedMinutes" 
+            value="<%= task ? task.estimatedMinutes : '' %>"
+            class="form-input w-full <%= errors.estimatedMinutes ? 'border-red-500' : '' %>"
+            placeholder="e.g., 30"
+            min="1"
+            max="1440"
+          >
+          <% if (errors.estimatedMinutes) { %>
+            <p class="text-red-500 text-sm mt-1"><%= errors.estimatedMinutes %></p>
+          <% } %>
+          <p class="text-gray-500 text-sm mt-1">Enter estimated time in minutes (1-1440)</p>
+        </div>
+
+        <!-- Tags -->
+        <div class="mb-6">
+          <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
+            Tags
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="tagInput" 
+              class="form-input w-full"
+              placeholder="Type a tag and press Enter"
+              autocomplete="off"
+            >
+            <div id="tagSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-40 overflow-y-auto"></div>
+          </div>
+          <div id="tagContainer" class="flex flex-wrap gap-2 mt-2">
+            <% if (task && task.tags && task.tags.length > 0) { %>
+              <% task.tags.forEach(tag => { %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <%= tag %>
+                  <button type="button" onclick="removeTag('<%= tag %>')" class="ml-1 text-blue-600 hover:text-blue-800">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                  </button>
+                </span>
+              <% }) %>
+            <% } %>
+          </div>
+          <input type="hidden" id="tags" name="tags" value="<%= task && task.tags ? task.tags.join(',') : '' %>">
+          <p class="text-gray-500 text-sm mt-1">Add tags to organize your tasks</p>
+        </div>
+
+        <!-- Status (only for editing) -->
+        <% if (task) { %>
+          <div class="mb-6">
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <select 
+              id="status" 
+              name="status" 
+              class="form-select w-full <%= errors.status ? 'border-red-500' : '' %>"
+            >
+              <option value="pending" <%= task.status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
+              <option value="cancelled" <%= task.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+            </select>
+            <% if (errors.status) { %>
+              <p class="text-red-500 text-sm mt-1"><%= errors.status %></p>
+            <% } %>
+          </div>
+        <% } %>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+          <a 
+            href="<%= task ? `/tasks/daily?date=${task.date.toISOString().split('T')[0]}` : '/tasks/daily' %>" 
+            class="btn btn-secondary"
+          >
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <%= task ? 'Update Task' : 'Create Task' %>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="mt-8 bg-blue-50 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-blue-900 mb-3">Quick Tips</h3>
+      <ul class="space-y-2 text-sm text-blue-800">
+        <li class="flex items-start">
+          <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Use descriptive titles to make tasks easier to identify
+        </li>
+        <li class="flex items-start">
+          <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Set realistic estimated times to better plan your day
+        </li>
+        <li class="flex items-start">
+          <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Use tags to group related tasks and improve organization
+        </li>
+        <li class="flex items-start">
+          <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Choose appropriate priority levels to focus on what matters most
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tag management
+let tags = [];
+const tagInput = document.getElementById('tagInput');
+const tagContainer = document.getElementById('tagContainer');
+const tagsHidden = document.getElementById('tags');
+const tagSuggestions = document.getElementById('tagSuggestions');
+
+// Initialize tags from existing task
+<% if (task && task.tags && task.tags.length > 0) { %>
+  tags = [<% task.tags.forEach(tag => { %>'<%= tag %>',<% }) %>];
+<% } %>
+
+// Common tags for suggestions
+const commonTags = [
+  'meeting', 'call', 'email', 'review', 'planning', 'research', 
+  'exercise', 'reading', 'study', 'shopping', 'cleaning', 'cooking',
+  'budget', 'bills', 'investment', 'health', 'wellness', 'project'
+];
+
+function addTag(tag) {
+  tag = tag.trim().toLowerCase();
+  if (tag && !tags.includes(tag)) {
+    tags.push(tag);
+    updateTagDisplay();
+    updateTagsHidden();
+  }
+  tagInput.value = '';
+  hideSuggestions();
+}
+
+function removeTag(tag) {
+  tags = tags.filter(t => t !== tag);
+  updateTagDisplay();
+  updateTagsHidden();
+}
+
+function updateTagDisplay() {
+  tagContainer.innerHTML = tags.map(tag => `
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+      ${tag}
+      <button type="button" onclick="removeTag('${tag}')" class="ml-1 text-blue-600 hover:text-blue-800">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </span>
+  `).join('');
+}
+
+function updateTagsHidden() {
+  tagsHidden.value = tags.join(',');
+}
+
+function showSuggestions(input) {
+  const filtered = commonTags.filter(tag => 
+    tag.toLowerCase().includes(input.toLowerCase()) && !tags.includes(tag)
+  );
+  
+  if (filtered.length > 0) {
+    tagSuggestions.innerHTML = filtered.map(tag => `
+      <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer" onclick="addTag('${tag}')">
+        ${tag}
+      </div>
+    `).join('');
+    tagSuggestions.classList.remove('hidden');
+  } else {
+    hideSuggestions();
+  }
+}
+
+function hideSuggestions() {
+  tagSuggestions.classList.add('hidden');
+}
+
+// Event listeners
+tagInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addTag(this.value);
+  }
+});
+
+tagInput.addEventListener('input', function() {
+  if (this.value.length > 0) {
+    showSuggestions(this.value);
+  } else {
+    hideSuggestions();
+  }
+});
+
+tagInput.addEventListener('blur', function() {
+  setTimeout(hideSuggestions, 200);
+});
+
+// Description character count
+const description = document.getElementById('description');
+const descriptionCount = document.getElementById('descriptionCount');
+
+description.addEventListener('input', function() {
+  descriptionCount.textContent = this.value.length;
+});
+
+// Initialize character count
+descriptionCount.textContent = description.value.length;
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+  const title = document.getElementById('title').value.trim();
+  const date = document.getElementById('date').value;
+  
+  if (!title) {
+    e.preventDefault();
+    alert('Please enter a task title');
+    return;
+  }
+  
+  if (!date) {
+    e.preventDefault();
+    alert('Please select a date');
+    return;
+  }
+  
+  // Validate estimated minutes
+  const estimatedMinutes = document.getElementById('estimatedMinutes').value;
+  if (estimatedMinutes && (estimatedMinutes < 1 || estimatedMinutes > 1440)) {
+    e.preventDefault();
+    alert('Estimated time must be between 1 and 1440 minutes');
+    return;
+  }
+});
+
+// Set default date to today if not provided
+if (!document.getElementById('date').value) {
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+}
+</script>
+
+<%- include('../partials/footer') %>
