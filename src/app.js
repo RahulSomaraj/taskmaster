@@ -29,25 +29,7 @@ connectDB();
 // Security middleware
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          'https://cdn.tailwindcss.com',
-          'https://cdn.jsdelivr.net',
-        ],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          'https://cdn.jsdelivr.net',
-          'https://cdn.tailwindcss.com',
-        ],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'", 'https://cdn.jsdelivr.net'],
-      },
-    },
+    contentSecurityPolicy: false, // Disable CSP for development
   })
 );
 

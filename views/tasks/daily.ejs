@@ -134,16 +134,16 @@
       <!-- Tab Navigation -->
       <div class="border-b border-gray-200">
         <nav class="flex space-x-8 px-6" aria-label="Tabs">
-          <button type="button" onclick="testTabClick('all')" id="tab-all" class="tab-button active py-4 px-1 border-b-2 border-[#00CED1] text-sm font-medium text-[#00CED1]">
+          <button type="button" onclick="switchTab('all')" id="tab-all" class="tab-button active py-4 px-1 border-b-2 border-[#00CED1] text-sm font-medium text-[#00CED1]">
             <i class="fas fa-list mr-2"></i>All Tasks (<%= tasks.length %>)
           </button>
-          <button type="button" onclick="testTabClick('pending')" id="tab-pending" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
+          <button type="button" onclick="switchTab('pending')" id="tab-pending" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-clock mr-2"></i>Pending (<%= tasks.filter(t => t.status === 'pending').length %>)
           </button>
-          <button type="button" onclick="testTabClick('completed')" id="tab-completed" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
+          <button type="button" onclick="switchTab('completed')" id="tab-completed" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-check-circle mr-2"></i>Completed (<%= tasks.filter(t => t.status === 'completed').length %>)
           </button>
-          <button type="button" onclick="testTabClick('overdue')" id="tab-overdue" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
+          <button type="button" onclick="switchTab('overdue')" id="tab-overdue" class="tab-button py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-exclamation-triangle mr-2"></i>Overdue (<%= tasks.filter(t => t.isOverdue).length %>)
           </button>
         </nav>
@@ -265,10 +265,10 @@
                             <i class="fas fa-edit"></i>
                           </a>
 
-                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" onsubmit="return confirmDelete(event)">
+                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" data-action="delete-form">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 text-sm font-medium flex items-center space-x-1 relative" title="Delete Task">
+                            <button type="button" onclick="confirmDelete(event)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 text-sm font-medium flex items-center space-x-1 relative" title="Delete Task" data-action="delete-task">
                               <i class="fas fa-trash text-xs"></i>
                               <span>Delete</span>
                             </button>
@@ -392,10 +392,10 @@
                             <i class="fas fa-edit"></i>
                           </a>
 
-                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" onsubmit="return confirmDelete(event)">
+                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" data-action="delete-form">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <button type="submit" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
+                            <button type="button" onclick="confirmDelete(event)" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
                               <i class="fas fa-trash"></i>
                             </button>
                           </form>
@@ -518,10 +518,10 @@
                             <i class="fas fa-edit"></i>
                           </a>
 
-                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" onsubmit="return confirmDelete(event)">
+                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" data-action="delete-form">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <button type="submit" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
+                            <button type="button" onclick="confirmDelete(event)" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
                               <i class="fas fa-trash"></i>
                             </button>
                           </form>
@@ -644,10 +644,10 @@
                             <i class="fas fa-edit"></i>
                           </a>
 
-                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" onsubmit="return confirmDelete(event)">
+                          <form action="/tasks/<%= task._id %>" method="POST" class="inline" data-action="delete-form">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <button type="submit" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
+                            <button type="button" onclick="confirmDelete(event)" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all duration-200" title="Delete Task">
                               <i class="fas fa-trash"></i>
                             </button>
                           </form>
@@ -730,6 +730,12 @@
 </div>
 
 <style>
+/* CRITICAL: Prevent Quick Actions and delete buttons from disappearing */
+.bg-blue-50 { display: block !important; visibility: visible !important; opacity: 1 !important; }
+.task-card .actions { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+.task-card button[data-action="delete-task"] { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; }
+.bg-red-500 { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; }
+
 .task-card.completed { opacity: 0.7; }
 .task-card.overdue { border-color: #ef4444; background-color: #fef2f2; }
 .tab-button { transition: all 0.3s ease; }
@@ -865,6 +871,9 @@ function renderTasksInTab(tabName, tasks) {
     // Render tasks
     const tasksHTML = tasks.map(task => createTaskCardHTML(task)).join('');
     taskListContainer.innerHTML = `<div class="space-y-4">${tasksHTML}</div>`;
+    
+    // Ensure delete buttons are visible after rendering
+    setTimeout(ensureDeleteButtonsVisible, 100);
   }
 }
 
@@ -965,14 +974,14 @@ function createTaskCardHTML(task) {
               <i class="fas fa-edit"></i>
             </a>
             
-            <form action="/tasks/${task._id}" method="POST" class="inline" onsubmit="return confirmDelete(event)">
-              <input type="hidden" name="_method" value="DELETE">
-              <input type="hidden" name="_csrf" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
-              <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 text-sm font-medium flex items-center space-x-1 relative" title="Delete Task">
-                <i class="fas fa-trash text-xs"></i>
-                <span>Delete</span>
-              </button>
-            </form>
+                         <form action="/tasks/${task._id}" method="POST" class="inline" data-action="delete-form">
+               <input type="hidden" name="_method" value="DELETE">
+               <input type="hidden" name="_csrf" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+               <button type="button" onclick="confirmDelete(event)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 text-sm font-medium flex items-center space-x-1 relative" title="Delete Task" data-action="delete-task">
+                 <i class="fas fa-trash text-xs"></i>
+                 <span>Delete</span>
+               </button>
+             </form>
           </div>
         </div>
       </div>
@@ -1041,16 +1050,26 @@ function updateTabCount(tabName, count) {
   }
 }
 
-function showQuickAddModal() {
-  const modal = document.getElementById('quickAddModal');
-  modal.classList.remove('hidden');
+function testQuickAdd() {
+  alert('Quick Add button clicked!');
+  showQuickAddModal();
+}
 
+function showQuickAddModal() {
+  console.log('showQuickAddModal called');
+  const modal = document.getElementById('quickAddModal');
+  if (!modal) {
+    console.error('Modal not found!');
+    return;
+  }
+  modal.classList.remove('hidden');
   setTimeout(() => {
     const panel = modal.querySelector('.bg-white');
-    panel.classList.remove('scale-95', 'opacity-0');
-    panel.classList.add('scale-100', 'opacity-100');
+    if (panel) {
+      panel.classList.remove('scale-95', 'opacity-0');
+      panel.classList.add('scale-100', 'opacity-100');
+    }
   }, 10);
-
   const titleInput = document.getElementById('modal-title');
   if (titleInput) titleInput.focus();
 }
@@ -1067,7 +1086,83 @@ function confirmDelete(event) {
     event.preventDefault();
     return false;
   }
-  return true;
+  
+  // Get the form and task card
+  const form = event.target.closest('form');
+  const taskCard = event.target.closest('.task-card');
+  
+  // Show loading state
+  const button = event.target;
+  const originalText = button.innerHTML;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Deleting...';
+  button.disabled = true;
+  
+  // Submit form via AJAX
+  fetch(form.action, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(new FormData(form))
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Remove the task card with animation
+      taskCard.style.transition = 'all 0.3s ease';
+      taskCard.style.opacity = '0';
+      taskCard.style.transform = 'translateX(-100%)';
+      setTimeout(() => {
+        taskCard.remove();
+        // Update task counts
+        updateTaskCounts();
+      }, 300);
+    } else {
+      alert('Error deleting task: ' + data.message);
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error deleting task. Please try again.');
+    button.innerHTML = originalText;
+    button.disabled = false;
+  });
+  
+  event.preventDefault();
+  return false;
+}
+
+function updateTaskCounts() {
+  // Update the task counts in the tab buttons
+  const allTasks = document.querySelectorAll('.task-card').length;
+  const pendingTasks = document.querySelectorAll('.task-card[data-status="pending"]').length;
+  const completedTasks = document.querySelectorAll('.task-card[data-status="completed"]').length;
+  const overdueTasks = document.querySelectorAll('.task-card[data-overdue="true"]').length;
+  
+  // Update tab button counts
+  const allTab = document.getElementById('tab-all');
+  const pendingTab = document.getElementById('tab-pending');
+  const completedTab = document.getElementById('tab-completed');
+  const overdueTab = document.getElementById('tab-overdue');
+  
+  if (allTab) {
+    const icon = allTab.querySelector('i');
+    allTab.innerHTML = `${icon.outerHTML} All Tasks (${allTasks})`;
+  }
+  if (pendingTab) {
+    const icon = pendingTab.querySelector('i');
+    pendingTab.innerHTML = `${icon.outerHTML} Pending (${pendingTasks})`;
+  }
+  if (completedTab) {
+    const icon = completedTab.querySelector('i');
+    completedTab.innerHTML = `${icon.outerHTML} Completed (${completedTasks})`;
+  }
+  if (overdueTab) {
+    const icon = overdueTab.querySelector('i');
+    overdueTab.innerHTML = `${icon.outerHTML} Overdue (${overdueTasks})`;
+  }
 }
 
 function confirmLogout(event) {
@@ -1090,14 +1185,41 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') hideQuickAddModal();
 });
 
-function testTabClick(tabName) {
-  alert('Tab clicked: ' + tabName);
-  switchTab(tabName);
+
+
+// Function to ensure Quick Actions and delete buttons are always visible
+function ensureDeleteButtonsVisible() {
+  // Ensure Quick Actions section is visible
+  const quickActionsSection = document.querySelector('.bg-blue-50');
+  if (quickActionsSection) {
+    quickActionsSection.style.setProperty('display', 'block', 'important');
+    quickActionsSection.style.setProperty('visibility', 'visible', 'important');
+    quickActionsSection.style.setProperty('opacity', '1', 'important');
+  }
+  
+  // Ensure delete buttons are visible
+  const deleteButtons = document.querySelectorAll('[data-action="delete-task"], .bg-red-500, button[title="Delete Task"]');
+  deleteButtons.forEach(button => {
+    button.style.setProperty('display', 'inline-flex', 'important');
+    button.style.setProperty('visibility', 'visible', 'important');
+    button.style.setProperty('opacity', '1', 'important');
+  });
+  
+  // Ensure action containers are visible
+  const actionContainers = document.querySelectorAll('.actions');
+  actionContainers.forEach(container => {
+    container.style.setProperty('display', 'flex', 'important');
+    container.style.setProperty('visibility', 'visible', 'important');
+    container.style.setProperty('opacity', '1', 'important');
+  });
 }
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOM loaded, initializing tabs...');
+  
+  // Ensure delete buttons are visible initially
+  ensureDeleteButtonsVisible();
   
   // Add event listeners to tab buttons as backup
   document.querySelectorAll('.tab-button').forEach(button => {

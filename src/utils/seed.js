@@ -4,7 +4,17 @@ const Task = require('../models/Task');
 const dayjs = require('dayjs');
 require('dotenv').config();
 
-const categories = ['work', 'personal', 'health', 'finance', 'education', 'shopping', 'travel', 'other'];
+const categories = [
+  'work',
+  'personal',
+  'health',
+  'finance',
+  'education',
+  'shopping',
+  'newshop',
+  'travel',
+  'other',
+];
 const priorities = ['low', 'medium', 'high'];
 const statuses = ['pending', 'completed', 'cancelled'];
 
@@ -69,7 +79,7 @@ const sampleTasks = [
   'Check travel documents',
   'Research local attractions',
   'Book restaurant reservations',
-  'Arrange airport transfer'
+  'Arrange airport transfer',
 ];
 
 const sampleDescriptions = [
@@ -82,7 +92,7 @@ const sampleDescriptions = [
   'Quick task that can be done today',
   'Long-term project milestone',
   'Daily routine task',
-  'Weekly review item'
+  'Weekly review item',
 ];
 
 function getRandomElement(array) {
@@ -100,17 +110,28 @@ function getRandomTime() {
 }
 
 function getRandomTags() {
-  const allTags = ['urgent', 'important', 'follow-up', 'meeting', 'deadline', 'review', 'planning', 'research', 'maintenance', 'creative'];
+  const allTags = [
+    'urgent',
+    'important',
+    'follow-up',
+    'meeting',
+    'deadline',
+    'review',
+    'planning',
+    'research',
+    'maintenance',
+    'creative',
+  ];
   const numTags = Math.floor(Math.random() * 4);
   const tags = [];
-  
+
   for (let i = 0; i < numTags; i++) {
     const tag = getRandomElement(allTags);
     if (!tags.includes(tag)) {
       tags.push(tag);
     }
   }
-  
+
   return tags;
 }
 
@@ -130,7 +151,7 @@ async function seedDatabase() {
       name: 'Demo User',
       email: 'demo@demo.com',
       password: 'Demo@123',
-      role: 'user'
+      role: 'user',
     });
 
     await demoUser.save();
@@ -141,7 +162,7 @@ async function seedDatabase() {
       name: 'Admin User',
       email: 'admin@demo.com',
       password: 'Admin@123',
-      role: 'admin'
+      role: 'admin',
     });
 
     await adminUser.save();
@@ -150,7 +171,7 @@ async function seedDatabase() {
     // Generate tasks for the last 90 days
     const endDate = dayjs();
     const startDate = endDate.subtract(90, 'days');
-    
+
     const tasks = [];
     const numTasks = 500; // Generate 500 random tasks
 
@@ -158,7 +179,7 @@ async function seedDatabase() {
       const taskDate = getRandomDate(startDate.toDate(), endDate.toDate());
       const status = getRandomElement(statuses);
       const completedAt = status === 'completed' ? getRandomDate(taskDate, endDate.toDate()) : null;
-      
+
       const task = {
         userId: Math.random() > 0.8 ? adminUser._id : demoUser._id, // 20% chance for admin user
         title: getRandomElement(sampleTasks),
@@ -171,7 +192,7 @@ async function seedDatabase() {
         tags: getRandomTags(),
         estimatedMinutes: Math.random() > 0.5 ? Math.floor(Math.random() * 180) + 15 : null, // 15-195 minutes
         completedAt: completedAt,
-        createdAt: getRandomDate(taskDate, endDate.toDate())
+        createdAt: getRandomDate(taskDate, endDate.toDate()),
       };
 
       tasks.push(task);
@@ -182,18 +203,21 @@ async function seedDatabase() {
     for (let i = 0; i < tasks.length; i += batchSize) {
       const batch = tasks.slice(i, i + batchSize);
       await Task.insertMany(batch);
-      console.log(`📝 Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(tasks.length / batchSize)}`);
+      console.log(
+        `📝 Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(tasks.length / batchSize)}`
+      );
     }
 
     console.log('🎉 Database seeded successfully!');
     console.log('\n📊 Demo Data Summary:');
     console.log(`👤 Users: 2 (demo@demo.com, admin@demo.com)`);
     console.log(`📝 Tasks: ${tasks.length}`);
-    console.log(`📅 Date Range: ${startDate.format('MMM DD, YYYY')} - ${endDate.format('MMM DD, YYYY')}`);
+    console.log(
+      `📅 Date Range: ${startDate.format('MMM DD, YYYY')} - ${endDate.format('MMM DD, YYYY')}`
+    );
     console.log('\n🔑 Login Credentials:');
     console.log('Demo User: demo@demo.com / Demo@123');
     console.log('Admin User: admin@demo.com / Admin@123');
-
   } catch (error) {
     console.error('❌ Seeding error:', error);
     process.exit(1);

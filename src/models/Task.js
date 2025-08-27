@@ -39,7 +39,17 @@ const taskSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: ['work', 'personal', 'health', 'finance', 'education', 'shopping', 'travel', 'other'],
+      enum: [
+        'work',
+        'personal',
+        'health',
+        'finance',
+        'newshop',
+        'education',
+        'shopping',
+        'travel',
+        'other',
+      ],
     },
     tags: [
       {

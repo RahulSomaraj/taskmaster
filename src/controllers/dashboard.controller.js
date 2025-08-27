@@ -10,14 +10,13 @@ class DashboardController {
 
       res.render('dashboard/index', {
         title: 'Dashboard',
-        dashboardData
+        dashboardData,
       });
-
     } catch (error) {
       console.error('Dashboard error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading the dashboard.'
+        message: 'An error occurred while loading the dashboard.',
       };
       res.redirect('/');
     }
@@ -30,14 +29,13 @@ class DashboardController {
 
       res.json({
         success: true,
-        data: dashboardData
+        data: dashboardData,
       });
-
     } catch (error) {
       console.error('Dashboard data error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching dashboard data.'
+        message: 'An error occurred while fetching dashboard data.',
       });
     }
   }
@@ -50,7 +48,7 @@ class DashboardController {
         to: req.query.to || dayjs().format('YYYY-MM-DD'),
         status: req.query.status || 'all',
         category: req.query.category || '',
-        priority: req.query.priority || 'all'
+        priority: req.query.priority || 'all',
       };
 
       const summary = await reportService.getReportSummary(req.user._id, filters);
@@ -59,15 +57,24 @@ class DashboardController {
         title: 'Reports',
         filters,
         summary,
-        categories: ['work', 'personal', 'health', 'finance', 'education', 'shopping', 'travel', 'other'],
-        priorities: ['low', 'medium', 'high']
+        categories: [
+          'work',
+          'personal',
+          'health',
+          'finance',
+          'education',
+          'shopping',
+          'newshop',
+          'travel',
+          'other',
+        ],
+        priorities: ['low', 'medium', 'high'],
       });
-
     } catch (error) {
       console.error('Reports error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading reports.'
+        message: 'An error occurred while loading reports.',
       };
       res.redirect('/dashboard');
     }
@@ -82,7 +89,7 @@ class DashboardController {
         status: req.query.status,
         category: req.query.category,
         priority: req.query.priority,
-        tags: req.query.tags ? req.query.tags.split(',') : []
+        tags: req.query.tags ? req.query.tags.split(',') : [],
       };
 
       const csv = await reportService.generateCSV(req.user._id, filters);
@@ -92,12 +99,11 @@ class DashboardController {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(csv);
-
     } catch (error) {
       console.error('CSV export error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while generating the CSV report.'
+        message: 'An error occurred while generating the CSV report.',
       };
       res.redirect('/dashboard/reports');
     }
@@ -112,7 +118,7 @@ class DashboardController {
         status: req.query.status,
         category: req.query.category,
         priority: req.query.priority,
-        tags: req.query.tags ? req.query.tags.split(',') : []
+        tags: req.query.tags ? req.query.tags.split(',') : [],
       };
 
       const pdf = await reportService.generatePDF(req.user._id, filters);
@@ -122,12 +128,11 @@ class DashboardController {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(pdf);
-
     } catch (error) {
       console.error('PDF export error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while generating the PDF report.'
+        message: 'An error occurred while generating the PDF report.',
       };
       res.redirect('/dashboard/reports');
     }
@@ -141,14 +146,13 @@ class DashboardController {
 
       res.json({
         success: true,
-        data
+        data,
       });
-
     } catch (error) {
       console.error('Completion rate trend error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching completion rate trend.'
+        message: 'An error occurred while fetching completion rate trend.',
       });
     }
   }
@@ -161,14 +165,13 @@ class DashboardController {
 
       res.json({
         success: true,
-        data
+        data,
       });
-
     } catch (error) {
       console.error('Weekly data error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching weekly data.'
+        message: 'An error occurred while fetching weekly data.',
       });
     }
   }
@@ -181,14 +184,13 @@ class DashboardController {
 
       res.json({
         success: true,
-        data
+        data,
       });
-
     } catch (error) {
       console.error('Category breakdown error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching category breakdown.'
+        message: 'An error occurred while fetching category breakdown.',
       });
     }
   }
@@ -201,14 +203,13 @@ class DashboardController {
 
       res.json({
         success: true,
-        data
+        data,
       });
-
     } catch (error) {
       console.error('Priority breakdown error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching priority breakdown.'
+        message: 'An error occurred while fetching priority breakdown.',
       });
     }
   }
@@ -221,13 +222,13 @@ class DashboardController {
         averageCompletionTime,
         overdueCount,
         monthlyCompletionRate,
-        averageTasksPerDay
+        averageTasksPerDay,
       ] = await Promise.all([
         analyticsService.getCurrentStreak(req.user._id),
         analyticsService.getAverageCompletionTime(req.user._id),
         analyticsService.getOverdueTasksCount(req.user._id),
         analyticsService.getMonthlyCompletionRate(req.user._id),
-        analyticsService.getAverageTasksPerDay(req.user._id)
+        analyticsService.getAverageTasksPerDay(req.user._id),
       ]);
 
       res.json({
@@ -237,15 +238,14 @@ class DashboardController {
           averageCompletionTime,
           overdueCount,
           monthlyCompletionRate,
-          averageTasksPerDay
-        }
+          averageTasksPerDay,
+        },
       });
-
     } catch (error) {
       console.error('KPI error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while fetching KPI data.'
+        message: 'An error occurred while fetching KPI data.',
       });
     }
   }
@@ -259,7 +259,7 @@ class DashboardController {
         status: req.query.status,
         category: req.query.category,
         priority: req.query.priority,
-        tags: req.query.tags ? req.query.tags.split(',') : []
+        tags: req.query.tags ? req.query.tags.split(',') : [],
       };
 
       const tasks = await reportService.getFilteredTasks(req.user._id, filters);
@@ -270,15 +270,14 @@ class DashboardController {
         data: {
           tasks: tasks.slice(0, 10), // Show first 10 tasks as preview
           summary,
-          totalTasks: tasks.length
-        }
+          totalTasks: tasks.length,
+        },
       });
-
     } catch (error) {
       console.error('Report preview error:', error);
       res.status(400).json({
         success: false,
-        message: 'An error occurred while generating report preview.'
+        message: 'An error occurred while generating report preview.',
       });
     }
   }

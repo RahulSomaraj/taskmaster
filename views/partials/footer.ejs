@@ -206,8 +206,8 @@
             });
         });
 
-        // Auto-hide flash messages
-        const flashMessages = document.querySelectorAll('[class*="bg-green-50"], [class*="bg-red-50"], [class*="bg-blue-50"]');
+        // Auto-hide flash messages (only actual flash messages, not UI sections)
+        const flashMessages = document.querySelectorAll('.flash-message, .alert, [data-flash="true"]');
         flashMessages.forEach(message => {
             setTimeout(() => {
                 message.style.opacity = '0';

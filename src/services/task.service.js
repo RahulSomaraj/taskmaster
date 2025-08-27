@@ -262,6 +262,14 @@ class TaskService {
       }
     );
   }
+
+  // Get soft-deleted tasks
+  async getDeletedTasks(userId) {
+    return await Task.find({
+      userId,
+      deletedAt: { $ne: null },
+    }).sort({ deletedAt: -1 });
+  }
 }
 
 module.exports = new TaskService();
