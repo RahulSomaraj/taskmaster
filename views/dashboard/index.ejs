@@ -4,19 +4,25 @@
     <!-- Header Section -->
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p class="text-gray-600">Your productivity analytics and insights</p>
-            </div>
+                            <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+                    <p class="text-gray-600">Your productivity analytics and insights</p>
+                </div>
             
             <div class="mt-4 sm:mt-0 flex space-x-3">
+                <a href="/tasks/daily" class="btn btn-primary flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    Manage Tasks
+                </a>
                 <button onclick="refreshDashboard()" class="btn btn-outline flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                     Refresh
                 </button>
-                <a href="/dashboard/reports" class="btn btn-primary flex items-center">
+                <a href="/dashboard/reports" class="btn btn-outline flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -34,7 +40,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    Daily Tasks
+                    Daily Analytics
                 </button>
                 <button onclick="switchTab('monthly')" id="monthly-tab" class="tab-button">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,6 +145,7 @@
     <div id="tab-content">
         <!-- Daily Tasks Tab -->
         <div id="daily-content" class="tab-content active">
+            <!-- Analytics Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Daily Completion Trend -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
@@ -204,8 +211,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900">View Today's Tasks</p>
-                                <p class="text-sm text-gray-600">See all tasks for today</p>
+                                <p class="font-semibold text-gray-900">Manage Daily Tasks</p>
+                                <p class="text-sm text-gray-600">View and manage your daily tasks</p>
                             </div>
                         </a>
                     </div>
@@ -329,6 +336,8 @@
     display: block;
 }
 
+
+
 .chart-period-btn {
     @apply px-3 py-1 text-sm font-medium rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors;
 }
@@ -359,14 +368,17 @@ let currentTab = 'daily';
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
-    loadDashboardData();
-    initializeTabNavigation();
+    console.log('Dashboard initialized');
+    
+    // Check if user is authenticated by trying to load dashboard data
+    loadDashboardData().catch(error => {
+        console.error('Failed to initialize dashboard:', error);
+        // If there's an error, redirect to login
+        window.location.href = '/auth/login';
+    });
+    
+    // Daily tab is already active by default, no need to call switchTab
 });
-
-function initializeTabNavigation() {
-    // Set Daily Tasks as active by default
-    switchTab('daily');
-}
 
 function switchTab(tabName) {
     // Update tab buttons
@@ -383,38 +395,70 @@ function switchTab(tabName) {
     
     currentTab = tabName;
     
-    // Load specific data for the tab
-    if (tabName === 'daily') {
+    // Only load data if charts don't exist yet
+    if (tabName === 'daily' && !charts.dailyCompletion) {
         loadDailyData();
-    } else if (tabName === 'monthly') {
+    } else if (tabName === 'monthly' && !charts.monthlyCompletion) {
         loadMonthlyData();
-    } else if (tabName === 'overview') {
+    } else if (tabName === 'overview' && !charts.completionRate) {
         loadOverviewData();
     }
 }
 
 async function loadDashboardData() {
     try {
-        showLoading(document.querySelector('main'));
+        console.log('Loading dashboard data...');
+        const response = await fetch('/dashboard/api/data', {
+            method: 'GET',
+            credentials: 'same-origin',
+            redirect: 'manual' // Don't follow redirects automatically
+        });
+        console.log('Response status:', response.status);
         
-        const response = await fetch('/dashboard/api/data');
+        // Check if we got redirected to login
+        if (response.status === 302 || response.status === 0) {
+            console.log('Authentication required - redirecting to login');
+            window.location.href = '/auth/login';
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('Dashboard data result:', result);
         
         if (result.success) {
             updateKPIs(result.data.kpis);
             createCharts(result.data);
         } else {
-            showError('Failed to load dashboard data');
+            console.error('Failed to load dashboard data:', result.message);
+            showError('Failed to load dashboard data: ' + result.message);
         }
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        showError('Failed to load dashboard data');
+        showError('Error loading dashboard data. Please make sure you are logged in.');
     }
 }
 
 async function loadDailyData() {
     try {
-        const response = await fetch('/dashboard/api/daily-data');
+        const response = await fetch('/dashboard/api/daily-data', {
+            method: 'GET',
+            credentials: 'same-origin',
+            redirect: 'manual'
+        });
+        
+        if (response.status === 302 || response.status === 0) {
+            console.log('Authentication required for daily data');
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -427,7 +471,21 @@ async function loadDailyData() {
 
 async function loadMonthlyData() {
     try {
-        const response = await fetch('/dashboard/api/monthly-data');
+        const response = await fetch('/dashboard/api/monthly-data', {
+            method: 'GET',
+            credentials: 'same-origin',
+            redirect: 'manual'
+        });
+        
+        if (response.status === 302 || response.status === 0) {
+            console.log('Authentication required for monthly data');
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -440,7 +498,21 @@ async function loadMonthlyData() {
 
 async function loadOverviewData() {
     try {
-        const response = await fetch('/dashboard/api/overview-data');
+        const response = await fetch('/dashboard/api/overview-data', {
+            method: 'GET',
+            credentials: 'same-origin',
+            redirect: 'manual'
+        });
+        
+        if (response.status === 302 || response.status === 0) {
+            console.log('Authentication required for overview data');
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -460,6 +532,7 @@ function updateKPIs(kpis) {
 }
 
 function createCharts(data) {
+    console.log('Creating charts with data:', data);
     // Create initial charts based on current tab
     if (currentTab === 'daily') {
         createDailyCharts(data);
@@ -471,16 +544,23 @@ function createCharts(data) {
 }
 
 function createDailyCharts(data) {
+    console.log('Creating daily charts with data:', data);
+    
     // Daily Completion Chart
     const dailyCtx = document.getElementById('dailyCompletionChart');
+    console.log('Daily chart canvas:', dailyCtx);
     if (dailyCtx && !charts.dailyCompletion) {
+        // Use the correct data structure from daily API
+        const chartData = data.dailyCompletionTrend || [];
+        console.log('Chart data:', chartData);
+        
         charts.dailyCompletion = new Chart(dailyCtx, {
             type: 'line',
             data: {
-                labels: data.dailyCompletionTrend?.map(item => item.date) || [],
+                labels: chartData.map(item => item.date) || [],
                 datasets: [{
                     label: 'Completion Rate (%)',
-                    data: data.dailyCompletionTrend?.map(item => item.completionRate) || [],
+                    data: chartData.map(item => item.completionRate) || [],
                     borderColor: 'rgb(59, 130, 246)',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     tension: 0.4,
@@ -515,12 +595,15 @@ function createDailyCharts(data) {
     // Today's Distribution Chart
     const todayCtx = document.getElementById('todayDistributionChart');
     if (todayCtx && !charts.todayDistribution) {
+        const todayStats = data.todayStats || {};
+        console.log('Today stats:', todayStats);
+        
         charts.todayDistribution = new Chart(todayCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Pending', 'Overdue'],
                 datasets: [{
-                    data: [data.todayStats?.completed || 0, data.todayStats?.pending || 0, data.todayStats?.overdue || 0],
+                    data: [todayStats.completed || 0, todayStats.pending || 0, todayStats.overdue || 0],
                     backgroundColor: [
                         'rgba(34, 197, 94, 0.8)',
                         'rgba(251, 191, 36, 0.8)',
@@ -543,7 +626,9 @@ function createDailyCharts(data) {
     }
 
     // Update productivity score
-    const productivityScore = data.todayStats?.productivityScore || 0;
+    const todayStats = data.todayStats || {};
+    const productivityScore = todayStats.productivityScore || 0;
+    console.log('Productivity score:', productivityScore);
     document.getElementById('productivityScore').textContent = productivityScore + '%';
     
     // Update productivity circle
@@ -754,8 +839,8 @@ function updateDailyChart(days) {
     });
     document.querySelector(`[data-period="${days}"]`).classList.add('active');
     
-    // Here you would typically fetch new data and update the chart
-    console.log(`Updating daily chart for ${days} days`);
+    // For now, just log the action - can be extended later
+    console.log(`Daily chart period changed to ${days} days`);
 }
 
 function updateMonthlyChart(months) {
@@ -765,8 +850,58 @@ function updateMonthlyChart(months) {
     });
     document.querySelector(`[data-period="${months}"]`).classList.add('active');
     
-    // Here you would typically fetch new data and update the chart
-    console.log(`Updating monthly chart for ${months} months`);
+    // For now, just log the action - can be extended later
+    console.log(`Monthly chart period changed to ${months} months`);
+}
+
+function showError(message) {
+    const flash = document.createElement('div');
+    flash.className = 'flash-message flash-error p-4 mb-4 border border-red-200 bg-red-50 text-red-700 rounded-md';
+    flash.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    const main = document.querySelector('main');
+    if (main) {
+        main.insertBefore(flash, main.firstChild);
+        
+        // Auto-remove the message after 5 seconds
+        setTimeout(() => {
+            if (flash.parentNode) {
+                flash.remove();
+            }
+        }, 5000);
+    }
+}
+
+function showSuccess(message) {
+    const flash = document.createElement('div');
+    flash.className = 'flash-message flash-success p-4 mb-4 border border-green-200 bg-green-50 text-green-700 rounded-md';
+    flash.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    const main = document.querySelector('main');
+    if (main) {
+        main.insertBefore(flash, main.firstChild);
+        
+        // Auto-remove the message after 3 seconds
+        setTimeout(() => {
+            if (flash.parentNode) {
+                flash.remove();
+            }
+        }, 3000);
+    }
 }
 
 function refreshDashboard() {
@@ -780,7 +915,16 @@ function refreshDashboard() {
     
     // Reload data
     loadDashboardData();
+    
+    // Show a brief success message
+    showSuccess('Dashboard refreshed successfully!');
 }
+
+// Task management functions
+// Removed task management functions as they are no longer available
+
+// Load tasks when daily tab is active
+// Removed loadDailyTasks as it's no longer needed
 </script>
 
 <%- include('../partials/footer') %>

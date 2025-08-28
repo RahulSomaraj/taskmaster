@@ -10,34 +10,34 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+        },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
           total: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
       },
       {
         $project: {
-          date: "$_id",
+          date: '$_id',
           total: 1,
           completed: 1,
           completionRate: {
             $cond: [
-              { $eq: ["$total", 0] },
+              { $eq: ['$total', 0] },
               0,
-              { $multiply: [{ $divide: ["$completed", "$total"] }, 100] }
-            ]
-          }
-        }
+              { $multiply: [{ $divide: ['$completed', '$total'] }, 100] },
+            ],
+          },
+        },
       },
-      { $sort: { date: 1 } }
+      { $sort: { date: 1 } },
     ]);
 
     return result;
@@ -51,12 +51,12 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           $or: [
             { date: { $gte: startDate.toDate(), $lte: endDate.toDate() } },
-            { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() } }
-          ]
-        }
+            { createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() } },
+          ],
+        },
       },
       {
         $facet: {
@@ -64,88 +64,136 @@ class AnalyticsService {
             {
               $group: {
                 _id: {
-                  year: { $year: "$createdAt" },
-                  week: { $week: "$createdAt" }
+                  year: { $year: '$createdAt' },
+                  week: { $week: '$createdAt' },
                 },
-                count: { $sum: 1 }
-              }
-            }
+                count: { $sum: 1 },
+              },
+            },
           ],
           completed: [
             {
-              $match: { status: "completed" }
+              $match: { status: 'completed' },
             },
             {
               $group: {
                 _id: {
-                  year: { $year: "$completedAt" },
-                  week: { $week: "$completedAt" }
+                  year: { $year: '$completedAt' },
+                  week: { $week: '$completedAt' },
                 },
-                count: { $sum: 1 }
-              }
-            }
-          ]
-        }
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
       },
       {
         $project: {
           weeks: {
             $map: {
               input: { $range: [0, weeks] },
-              as: "weekOffset",
+              as: 'weekOffset',
               in: {
                 week: {
                   $dateToString: {
-                    format: "%Y-%m-%d",
+                    format: '%Y-%m-%d',
                     date: {
                       $subtract: [
                         endDate.toDate(),
-                        { $multiply: ["$$weekOffset", 7 * 24 * 60 * 60 * 1000] }
-                      ]
-                    }
-                  }
+                        { $multiply: ['$$weekOffset', 7 * 24 * 60 * 60 * 1000] },
+                      ],
+                    },
+                  },
                 },
                 created: {
                   $let: {
                     vars: {
                       weekData: {
                         $filter: {
-                          input: "$created",
+                          input: '$created',
                           cond: {
                             $and: [
-                              { $eq: ["$$this._id.year", { $year: { $subtract: [endDate.toDate(), { $multiply: ["$$weekOffset", 7 * 24 * 60 * 60 * 1000] }] } }] },
-                              { $eq: ["$$this._id.week", { $week: { $subtract: [endDate.toDate(), { $multiply: ["$$weekOffset", 7 * 24 * 60 * 60 * 1000] }] } }] }
-                            ]
-                          }
-                        }
-                      }
+                              {
+                                $eq: [
+                                  '$$this._id.year',
+                                  {
+                                    $year: {
+                                      $subtract: [
+                                        endDate.toDate(),
+                                        { $multiply: ['$$weekOffset', 7 * 24 * 60 * 60 * 1000] },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                              {
+                                $eq: [
+                                  '$$this._id.week',
+                                  {
+                                    $week: {
+                                      $subtract: [
+                                        endDate.toDate(),
+                                        { $multiply: ['$$weekOffset', 7 * 24 * 60 * 60 * 1000] },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        },
+                      },
                     },
-                    in: { $ifNull: [{ $arrayElemAt: ["$$weekData.count", 0] }, 0] }
-                  }
+                    in: { $ifNull: [{ $arrayElemAt: ['$$weekData.count', 0] }, 0] },
+                  },
                 },
                 completed: {
                   $let: {
                     vars: {
                       weekData: {
                         $filter: {
-                          input: "$completed",
+                          input: '$completed',
                           cond: {
                             $and: [
-                              { $eq: ["$$this._id.year", { $year: { $subtract: [endDate.toDate(), { $multiply: ["$$weekOffset", 7 * 24 * 60 * 60 * 1000] }] } }] },
-                              { $eq: ["$$this._id.week", { $week: { $subtract: [endDate.toDate(), { $multiply: ["$$weekOffset", 7 * 24 * 60 * 60 * 1000] }] } }] }
-                            ]
-                          }
-                        }
-                      }
+                              {
+                                $eq: [
+                                  '$$this._id.year',
+                                  {
+                                    $year: {
+                                      $subtract: [
+                                        endDate.toDate(),
+                                        { $multiply: ['$$weekOffset', 7 * 24 * 60 * 60 * 1000] },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                              {
+                                $eq: [
+                                  '$$this._id.week',
+                                  {
+                                    $week: {
+                                      $subtract: [
+                                        endDate.toDate(),
+                                        { $multiply: ['$$weekOffset', 7 * 24 * 60 * 60 * 1000] },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        },
+                      },
                     },
-                    in: { $ifNull: [{ $arrayElemAt: ["$$weekData.count", 0] }, 0] }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    in: { $ifNull: [{ $arrayElemAt: ['$$weekData.count', 0] }, 0] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     ]);
 
     return result[0]?.weeks || [];
@@ -159,34 +207,34 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+        },
       },
       {
         $group: {
-          _id: "$category",
+          _id: '$category',
           count: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
       },
       {
         $project: {
-          category: "$_id",
+          category: '$_id',
           count: 1,
           completed: 1,
           completionRate: {
             $cond: [
-              { $eq: ["$count", 0] },
+              { $eq: ['$count', 0] },
               0,
-              { $multiply: [{ $divide: ["$completed", "$count"] }, 100] }
-            ]
-          }
-        }
+              { $multiply: [{ $divide: ['$completed', '$count'] }, 100] },
+            ],
+          },
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
 
     return result;
@@ -200,34 +248,34 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+        },
       },
       {
         $group: {
-          _id: "$priority",
+          _id: '$priority',
           count: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
       },
       {
         $project: {
-          priority: "$_id",
+          priority: '$_id',
           count: 1,
           completed: 1,
           completionRate: {
             $cond: [
-              { $eq: ["$count", 0] },
+              { $eq: ['$count', 0] },
               0,
-              { $multiply: [{ $divide: ["$completed", "$count"] }, 100] }
-            ]
-          }
-        }
+              { $multiply: [{ $divide: ['$completed', '$count'] }, 100] },
+            ],
+          },
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
 
     return result;
@@ -238,16 +286,16 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          status: "completed"
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          status: 'completed',
+        },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$completedAt" } }
-        }
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$completedAt' } },
+        },
       },
-      { $sort: { _id: -1 } }
+      { $sort: { _id: -1 } },
     ]);
 
     const completedDates = result.map(r => r._id);
@@ -270,30 +318,27 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          status: "completed",
+          userId: new Task.base.Types.ObjectId(userId),
+          status: 'completed',
           completedAt: { $exists: true, $ne: null },
           createdAt: { $exists: true, $ne: null },
-          completedAt: { $gte: startDate.toDate(), $lte: endDate.toDate() }
-        }
+          createdAt: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+        },
       },
       {
         $project: {
           completionTimeMinutes: {
-            $divide: [
-              { $subtract: ["$completedAt", "$createdAt"] },
-              1000 * 60
-            ]
-          }
-        }
+            $divide: [{ $subtract: ['$completedAt', '$createdAt'] }, 1000 * 60],
+          },
+        },
       },
       {
         $group: {
           _id: null,
-          averageMinutes: { $avg: "$completionTimeMinutes" },
-          totalTasks: { $sum: 1 }
-        }
-      }
+          averageMinutes: { $avg: '$completionTimeMinutes' },
+          totalTasks: { $sum: 1 },
+        },
+      },
     ]);
 
     return result[0] ? Math.round(result[0].averageMinutes) : 0;
@@ -302,18 +347,18 @@ class AnalyticsService {
   // Get overdue tasks count
   async getOverdueTasksCount(userId) {
     const now = new Date();
-    
+
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          status: "pending",
-          date: { $lt: now }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          status: 'pending',
+          date: { $lt: now },
+        },
       },
       {
-        $count: "count"
-      }
+        $count: 'count',
+      },
     ]);
 
     return result[0] ? result[0].count : 0;
@@ -327,30 +372,30 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          date: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          date: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+        },
       },
       {
         $group: {
           _id: null,
           total: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
       },
       {
         $project: {
           completionRate: {
             $cond: [
-              { $eq: ["$total", 0] },
+              { $eq: ['$total', 0] },
               0,
-              { $multiply: [{ $divide: ["$completed", "$total"] }, 100] }
-            ]
-          }
-        }
-      }
+              { $multiply: [{ $divide: ['$completed', '$total'] }, 100] },
+            ],
+          },
+        },
+      },
     ]);
 
     return result[0] ? Math.round(result[0].completionRate) : 0;
@@ -364,23 +409,23 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
-          date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
-        }
+          userId: new Task.base.Types.ObjectId(userId),
+          date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+        },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          count: { $sum: 1 }
-        }
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          count: { $sum: 1 },
+        },
       },
       {
         $group: {
           _id: null,
-          averageTasks: { $avg: "$count" },
-          totalDays: { $sum: 1 }
-        }
-      }
+          averageTasks: { $avg: '$count' },
+          totalDays: { $sum: 1 },
+        },
+      },
     ]);
 
     return result[0] ? Math.round(result[0].averageTasks * 10) / 10 : 0;
@@ -397,7 +442,7 @@ class AnalyticsService {
       averageCompletionTime,
       overdueCount,
       monthlyCompletionRate,
-      averageTasksPerDay
+      averageTasksPerDay,
     ] = await Promise.all([
       this.getCompletionRateTrend(userId),
       this.getWeeklyCreatedVsCompleted(userId),
@@ -407,7 +452,7 @@ class AnalyticsService {
       this.getAverageCompletionTime(userId),
       this.getOverdueTasksCount(userId),
       this.getMonthlyCompletionRate(userId),
-      this.getAverageTasksPerDay(userId)
+      this.getAverageTasksPerDay(userId),
     ]);
 
     return {
@@ -420,8 +465,8 @@ class AnalyticsService {
         averageCompletionTime,
         overdueCount,
         monthlyCompletionRate,
-        averageTasksPerDay
-      }
+        averageTasksPerDay,
+      },
     };
   }
 
@@ -433,37 +478,34 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $gte: today.toDate(), $lt: tomorrow.toDate() },
-          deletedAt: null
-        }
+          deletedAt: null,
+        },
       },
       {
         $group: {
           _id: null,
           total: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
           },
           pending: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] },
           },
           overdue: {
             $sum: {
               $cond: [
                 {
-                  $and: [
-                    { $eq: ["$status", "pending"] },
-                    { $lt: ["$date", new Date()] }
-                  ]
+                  $and: [{ $eq: ['$status', 'pending'] }, { $lt: ['$date', new Date()] }],
                 },
                 1,
-                0
-              ]
-            }
-          }
-        }
-      }
+                0,
+              ],
+            },
+          },
+        },
+      },
     ]);
 
     const stats = result[0] || { total: 0, completed: 0, pending: 0, overdue: 0 };
@@ -478,54 +520,54 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $gte: today.toDate(), $lt: tomorrow.toDate() },
-          deletedAt: null
-        }
+          deletedAt: null,
+        },
       },
       {
         $group: {
           _id: null,
           total: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
-      }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
+      },
     ]);
 
     const stats = result[0] || { total: 0, completed: 0 };
     const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
-    
+
     // Calculate productivity score based on completion rate and efficiency
     let productivityScore = completionRate;
-    
+
     // Bonus for completing all tasks
     if (stats.completed === stats.total && stats.total > 0) {
       productivityScore += 10;
     }
-    
+
     // Penalty for overdue tasks
     const overdueResult = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $lt: new Date() },
-          status: "pending",
-          deletedAt: null
-        }
+          status: 'pending',
+          deletedAt: null,
+        },
       },
       {
         $group: {
           _id: null,
-          overdueCount: { $sum: 1 }
-        }
-      }
+          overdueCount: { $sum: 1 },
+        },
+      },
     ]);
-    
+
     const overdueCount = overdueResult[0]?.overdueCount || 0;
-    productivityScore = Math.max(0, productivityScore - (overdueCount * 5));
-    
+    productivityScore = Math.max(0, productivityScore - overdueCount * 5);
+
     return Math.round(Math.min(100, productivityScore));
   }
 
@@ -537,44 +579,40 @@ class AnalyticsService {
     const result = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
-          deletedAt: null
-        }
+          deletedAt: null,
+        },
       },
       {
         $group: {
           _id: {
-            year: { $year: "$date" },
-            month: { $month: "$date" }
+            year: { $year: '$date' },
+            month: { $month: '$date' },
           },
           total: { $sum: 1 },
           completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+          },
+        },
       },
       {
         $project: {
           month: {
-            $concat: [
-              { $toString: "$_id.year" },
-              "-",
-              { $toString: "$_id.month" }
-            ]
+            $concat: [{ $toString: '$_id.year' }, '-', { $toString: '$_id.month' }],
           },
           total: 1,
           completed: 1,
           completionRate: {
             $cond: [
-              { $eq: ["$total", 0] },
+              { $eq: ['$total', 0] },
               0,
-              { $multiply: [{ $divide: ["$completed", "$total"] }, 100] }
-            ]
-          }
-        }
+              { $multiply: [{ $divide: ['$completed', '$total'] }, 100] },
+            ],
+          },
+        },
       },
-      { $sort: { month: 1 } }
+      { $sort: { month: 1 } },
     ]);
 
     return result;
@@ -588,20 +626,20 @@ class AnalyticsService {
     const bestDayResult = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $gte: thirtyDaysAgo.toDate() },
-          status: "completed",
-          deletedAt: null
-        }
+          status: 'completed',
+          deletedAt: null,
+        },
       },
       {
         $group: {
-          _id: { $dayOfWeek: "$date" },
-          completedCount: { $sum: 1 }
-        }
+          _id: { $dayOfWeek: '$date' },
+          completedCount: { $sum: 1 },
+        },
       },
       { $sort: { completedCount: -1 } },
-      { $limit: 1 }
+      { $limit: 1 },
     ]);
 
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -614,20 +652,20 @@ class AnalyticsService {
     const topCategoryResult = await Task.aggregate([
       {
         $match: {
-          userId: Task.base.Types.ObjectId(userId),
+          userId: new Task.base.Types.ObjectId(userId),
           date: { $gte: thirtyDaysAgo.toDate() },
-          status: "completed",
-          deletedAt: null
-        }
+          status: 'completed',
+          deletedAt: null,
+        },
       },
       {
         $group: {
-          _id: "$category",
-          completedCount: { $sum: 1 }
-        }
+          _id: '$category',
+          completedCount: { $sum: 1 },
+        },
       },
       { $sort: { completedCount: -1 } },
-      { $limit: 1 }
+      { $limit: 1 },
     ]);
 
     const topCategory = topCategoryResult[0] ? topCategoryResult[0]._id : 'N/A';
@@ -635,7 +673,7 @@ class AnalyticsService {
     return {
       bestDay,
       bestTime,
-      topCategory
+      topCategory,
     };
   }
 }

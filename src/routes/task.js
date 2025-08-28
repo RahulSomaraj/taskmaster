@@ -52,5 +52,6 @@ router.post('/bulk/delete', taskController.bulkDelete);
 // API routes
 router.get('/api/tasks', taskController.getTasks);
 router.get('/api/by-status', taskController.getTasksByStatus);
+router.get('/api/daily', taskController.getDailyTasksAPI);
 
 module.exports = router;
