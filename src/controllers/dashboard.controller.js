@@ -281,6 +281,102 @@ class DashboardController {
       });
     }
   }
+
+  // Get daily data for dashboard
+  async getDailyData(req, res) {
+    try {
+      const days = parseInt(req.query.days) || 30;
+      
+      const [
+        dailyCompletionTrend,
+        todayStats,
+        productivityScore
+      ] = await Promise.all([
+        analyticsService.getCompletionRateTrend(req.user._id, days),
+        analyticsService.getTodayStats(req.user._id),
+        analyticsService.getProductivityScore(req.user._id)
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          dailyCompletionTrend,
+          todayStats: {
+            ...todayStats,
+            productivityScore
+          }
+        },
+      });
+    } catch (error) {
+      console.error('Daily data error:', error);
+      res.status(400).json({
+        success: false,
+        message: 'An error occurred while fetching daily data.',
+      });
+    }
+  }
+
+  // Get monthly data for dashboard
+  async getMonthlyData(req, res) {
+    try {
+      const months = parseInt(req.query.months) || 12;
+      
+      const [
+        monthlyTrend,
+        categoryBreakdown,
+        weeklyData,
+        priorityBreakdown
+      ] = await Promise.all([
+        analyticsService.getMonthlyTrend(req.user._id, months),
+        analyticsService.getCategoryBreakdown(req.user._id, 30),
+        analyticsService.getWeeklyCreatedVsCompleted(req.user._id, 12),
+        analyticsService.getPriorityBreakdown(req.user._id, 30)
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          monthlyTrend,
+          categoryBreakdown,
+          weeklyData,
+          priorityBreakdown
+        },
+      });
+    } catch (error) {
+      console.error('Monthly data error:', error);
+      res.status(400).json({
+        success: false,
+        message: 'An error occurred while fetching monthly data.',
+      });
+    }
+  }
+
+  // Get overview data for dashboard
+  async getOverviewData(req, res) {
+    try {
+      const [
+        completionRateTrend,
+        insights
+      ] = await Promise.all([
+        analyticsService.getCompletionRateTrend(req.user._id, 30),
+        analyticsService.getProductivityInsights(req.user._id)
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          completionRateTrend,
+          insights
+        },
+      });
+    } catch (error) {
+      console.error('Overview data error:', error);
+      res.status(400).json({
+        success: false,
+        message: 'An error occurred while fetching overview data.',
+      });
+    }
+  }
 }
 
 module.exports = new DashboardController();

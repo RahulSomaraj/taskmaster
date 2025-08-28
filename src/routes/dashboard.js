@@ -22,6 +22,11 @@ router.get('/reports/export.pdf', validateDateRange, dashboardController.exportP
 // API routes for dashboard data
 router.get('/api/data', dashboardController.getDashboardData);
 
+// New API routes for tabbed dashboard
+router.get('/api/daily-data', dashboardController.getDailyData);
+router.get('/api/monthly-data', dashboardController.getMonthlyData);
+router.get('/api/overview-data', dashboardController.getOverviewData);
+
 // API routes for individual charts
 router.get('/api/completion-rate-trend', dashboardController.getCompletionRateTrend);
 router.get('/api/weekly-data', dashboardController.getWeeklyData);

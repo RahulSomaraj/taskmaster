@@ -2,6 +2,35 @@
 
 <div class="min-h-screen bg-gradient-to-br from-[#00CED1]/5 via-white to-[#20B2AA]/10">
   <div class="container mx-auto px-4 py-8">
+    <!-- Flash Messages -->
+    <% if (typeof flash !== 'undefined' && flash) { %>
+      <div class="mb-6">
+        <div class="flash-message bg-<%= flash.type === 'success' ? 'green' : 'red' %>-50 border border-<%= flash.type === 'success' ? 'green' : 'red' %>-200 rounded-lg p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="fas fa-<%= flash.type === 'success' ? 'check-circle' : 'exclamation-circle' %> text-<%= flash.type === 'success' ? 'green' : 'red' %>-400"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-<%= flash.type === 'success' ? 'green' : 'red' %>-800">
+                <%= flash.message %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+    
+    <!-- Reward Data for JavaScript -->
+    <% if (typeof flash !== 'undefined' && flash && flash.motivationalQuote) { %>
+      <script>
+        window.rewardData = {
+          quote: "<%= flash.motivationalQuote.quote %>",
+          author: "<%= flash.motivationalQuote.author %>",
+          image: "<%= flash.motivationalQuote.image %>"
+        };
+      </script>
+    <% } %>
+    
     <!-- Header Section -->
     <div class="mb-8">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -42,6 +71,8 @@
             <a href="/tasks/deleted" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg">
               <i class="fas fa-trash-restore mr-2"></i>Deleted Tasks
             </a>
+
+
           </div>
         </div>
       </div>
@@ -898,14 +929,14 @@ function createTaskCardHTML(task) {
             <!-- Status Checkbox -->
             <div class="flex-shrink-0">
               ${task.status === 'completed' ? `
-                <form action="/tasks/${task._id}/reset" method="POST" class="inline">
+                <form action="/tasks/${task._id}/reset" method="POST" class="inline" onsubmit="handleTaskReset(event, this)">
                   <input type="hidden" name="_csrf" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
                   <button type="submit" class="w-6 h-6 bg-[#00CED1] rounded-full flex items-center justify-center hover:bg-[#00B8BA] transition-colors duration-200">
                     <i class="fas fa-check text-white text-sm"></i>
                   </button>
                 </form>
               ` : `
-                <form action="/tasks/${task._id}/complete" method="POST" class="inline">
+                <form action="/tasks/${task._id}/complete" method="POST" class="inline" onsubmit="handleTaskComplete(event, this)">
                   <input type="hidden" name="_csrf" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
                   <button type="submit" class="w-6 h-6 border-2 border-gray-300 rounded-full hover:border-[#00CED1] hover:bg-[#00CED1]/10 transition-all duration-200"></button>
                 </form>
@@ -1214,27 +1245,214 @@ function ensureDeleteButtonsVisible() {
   });
 }
 
-// Initialize the page
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOM loaded, initializing tabs...');
-  
-  // Ensure delete buttons are visible initially
-  ensureDeleteButtonsVisible();
-  
-  // Add event listeners to tab buttons as backup
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', function() {
-      const tabName = this.id.replace('tab-', '');
-      console.log('Tab clicked:', tabName);
-      switchTab(tabName);
+    // Initialize the page
+  document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM loaded, initializing tabs...');
+    
+    // Ensure delete buttons are visible initially
+    ensureDeleteButtonsVisible();
+    
+    // Add event listeners to tab buttons as backup
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', function() {
+        const tabName = this.id.replace('tab-', '');
+        console.log('Tab clicked:', tabName);
+        switchTab(tabName);
+      });
     });
+    
+    // Add event listeners to all task completion forms
+    document.querySelectorAll('form[action*="/complete"]').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        handleTaskComplete(event, this);
+      });
+    });
+    
+    // Add event listeners to all task reset forms
+    document.querySelectorAll('form[action*="/reset"]').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        handleTaskReset(event, this);
+      });
+    });
+    
+    // Check for reward data from flash messages
+    checkForRewardData();
+    
+    // Debug: Log if reward data exists
+    if (window.rewardData) {
+      console.log('Reward data found:', window.rewardData);
+    } else {
+      console.log('No reward data found');
+    }
+    
+    // Auto-refresh task counts (placeholder)
+    setInterval(() => {
+      // Optionally, fetch and update stats/tasks here.
+    }, 30000);
   });
-  
-  // Auto-refresh task counts (placeholder)
-  setInterval(() => {
-    // Optionally, fetch and update stats/tasks here.
-  }, 30000);
-});
+
+  // Check for reward data in flash messages
+  function checkForRewardData() {
+    // Check if there's a flash message with reward data
+    const flashMessages = document.querySelectorAll('.flash-message, .alert');
+    flashMessages.forEach(message => {
+      const messageText = message.textContent;
+      
+      // Look for motivational quotes in the message
+      if (messageText.includes('Task created successfully') || 
+          messageText.includes('Task completed successfully') ||
+          messageText.includes('Welcome back')) {
+        
+        // Get reward data from the server response
+        const rewardData = getRewardDataFromFlash(message);
+        if (rewardData) {
+          showRewardModal(rewardData);
+        }
+      }
+    });
+  }
+
+  // Extract reward data from flash message
+  function getRewardDataFromFlash(messageElement) {
+    // This would typically come from the server response
+    // For now, we'll create a simple reward based on the message type
+    const messageText = messageElement.textContent;
+    
+    if (messageText.includes('Task created successfully')) {
+      return {
+        quote: "Every task you create is a step towards your dreams. You're building your future, one task at a time! 🌟",
+        author: "Your Future Self",
+        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop"
+      };
+    } else if (messageText.includes('Task completed successfully')) {
+      return {
+        quote: "BOOM! Another task conquered! You're absolutely crushing it today! 🎉",
+        author: "Your Success",
+        image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop"
+      };
+    } else if (messageText.includes('Welcome back')) {
+      return {
+        quote: "Welcome back, champion! Ready to conquer another amazing day? 🌅",
+        author: "Your Journey",
+        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop"
+      };
+    }
+    
+    return null;
+  }
+
+  // Handle task completion with rewards
+  function handleTaskComplete(event, form) {
+    event.preventDefault();
+    
+    const formData = new FormData(form);
+    const taskCard = form.closest('.task-card');
+    
+    // Show loading state
+    const button = form.querySelector('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+    button.disabled = true;
+    
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+      body: new URLSearchParams(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update task card appearance
+        taskCard.classList.add('completed');
+        button.innerHTML = '<i class="fas fa-check text-white text-sm"></i>';
+        button.className = 'w-6 h-6 bg-[#00CED1] rounded-full flex items-center justify-center hover:bg-[#00B8BA] transition-colors duration-200';
+        
+        // Show reward modal
+        if (data.rewards) {
+          handleTaskCompletionRewards(data);
+        }
+        
+        // Update task counts
+        updateTaskCounts();
+      } else {
+        alert('Error completing task: ' + data.message);
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error completing task. Please try again.');
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    });
+  }
+
+  // Update task counts in tabs
+  function updateTaskCounts() {
+    // This function would update the task counts in the tab headers
+    // For now, we'll just reload the page to get updated counts
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+  }
+
+
+
+  // Handle task reset with rewards
+  function handleTaskReset(event, form) {
+    event.preventDefault();
+    
+    const formData = new FormData(form);
+    const taskCard = form.closest('.task-card');
+    
+    // Show loading state
+    const button = form.querySelector('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+    button.disabled = true;
+    
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+      body: new URLSearchParams(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update task card appearance
+        taskCard.classList.remove('completed');
+        button.innerHTML = '<i class="fas fa-check text-white text-sm"></i>';
+        button.className = 'w-6 h-6 border-2 border-gray-300 rounded-full hover:border-[#00CED1] hover:bg-[#00CED1]/10 transition-all duration-200';
+        
+        // Show reward modal
+        if (data.rewards) {
+          handleTaskCompletionRewards(data);
+        }
+        
+        // Update task counts
+        updateTaskCounts();
+      } else {
+        alert('Error resetting task: ' + data.message);
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error resetting task. Please try again.');
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    });
+  }
 </script>
 
 <%- include('../partials/footer') %>

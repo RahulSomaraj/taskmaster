@@ -1,44 +1,71 @@
 <%- include('../partials/header', { title: 'Dashboard' }) %>
 
 <div class="container mx-auto px-4 py-8">
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p class="mt-1 text-sm text-gray-600">Your productivity analytics and insights</p>
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                <p class="text-gray-600">Your productivity analytics and insights</p>
+            </div>
+            
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <button onclick="refreshDashboard()" class="btn btn-outline flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Refresh
+                </button>
+                <a href="/dashboard/reports" class="btn btn-primary flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Reports
+                </a>
+            </div>
         </div>
-        
-        <div class="mt-4 sm:mt-0 flex space-x-2">
-            <button onclick="refreshDashboard()" class="btn btn-outline">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Refresh
-            </button>
-            <a href="/dashboard/reports" class="btn btn-primary">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Reports
-            </a>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button onclick="switchTab('daily')" id="daily-tab" class="tab-button active">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Daily Tasks
+                </button>
+                <button onclick="switchTab('monthly')" id="monthly-tab" class="tab-button">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Monthly Analytics
+                </button>
+                <button onclick="switchTab('overview')" id="overview-tab" class="tab-button">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Overview
+                </button>
+            </nav>
         </div>
     </div>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div class="kpi-card primary">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Current Streak</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="currentStreak">-</p>
+                    <p class="text-2xl font-bold text-gray-900" id="currentStreak">-</p>
                 </div>
             </div>
         </div>
@@ -46,15 +73,15 @@
         <div class="kpi-card success">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Monthly Completion</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="monthlyCompletion">-</p>
+                    <p class="text-2xl font-bold text-gray-900" id="monthlyCompletion">-</p>
                 </div>
             </div>
         </div>
@@ -62,15 +89,15 @@
         <div class="kpi-card warning">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Avg Completion Time</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="avgCompletionTime">-</p>
+                    <p class="text-2xl font-bold text-gray-900" id="avgCompletionTime">-</p>
                 </div>
             </div>
         </div>
@@ -78,15 +105,15 @@
         <div class="kpi-card danger">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Overdue Tasks</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="overdueCount">-</p>
+                    <p class="text-2xl font-bold text-gray-900" id="overdueCount">-</p>
                 </div>
             </div>
         </div>
@@ -94,63 +121,277 @@
         <div class="kpi-card">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">Avg Tasks/Day</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="avgTasksPerDay">-</p>
+                    <p class="text-2xl font-bold text-gray-900" id="avgTasksPerDay">-</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Completion Rate Trend -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Completion Rate Trend (Last 30 Days)</h3>
-            <div class="chart-container">
-                <canvas id="completionRateChart"></canvas>
+    <!-- Tab Content -->
+    <div id="tab-content">
+        <!-- Daily Tasks Tab -->
+        <div id="daily-content" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Daily Completion Trend -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Daily Completion Trend</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="updateDailyChart(7)" class="chart-period-btn active" data-period="7">7D</button>
+                            <button onclick="updateDailyChart(14)" class="chart-period-btn" data-period="14">14D</button>
+                            <button onclick="updateDailyChart(30)" class="chart-period-btn" data-period="30">30D</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dailyCompletionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Today's Task Distribution -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Today's Task Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="todayDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily Productivity Score -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Daily Productivity Score</h3>
+                    <div class="flex items-center justify-center">
+                        <div class="relative">
+                            <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-gray-200" stroke="currentColor" stroke-width="2" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                <path class="text-blue-600" stroke="currentColor" stroke-width="2" stroke-dasharray="0, 100" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" id="productivityCircle"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-2xl font-bold text-gray-900" id="productivityScore">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="text-sm text-gray-600">Based on completion rate and efficiency</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+                    <div class="space-y-4">
+                        <a href="/tasks/create" class="flex items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200">
+                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">Add New Task</p>
+                                <p class="text-sm text-gray-600">Create a new task for today</p>
+                            </div>
+                        </a>
+                        <a href="/tasks/daily" class="flex items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-200">
+                            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">View Today's Tasks</p>
+                                <p class="text-sm text-gray-600">See all tasks for today</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Weekly Created vs Completed -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Weekly Created vs Completed (Last 12 Weeks)</h3>
-            <div class="chart-container">
-                <canvas id="weeklyChart"></canvas>
+        <!-- Monthly Analytics Tab -->
+        <div id="monthly-content" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Monthly Completion Trend -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Monthly Completion Trend</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="updateMonthlyChart(3)" class="chart-period-btn active" data-period="3">3M</button>
+                            <button onclick="updateMonthlyChart(6)" class="chart-period-btn" data-period="6">6M</button>
+                            <button onclick="updateMonthlyChart(12)" class="chart-period-btn" data-period="12">12M</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthlyCompletionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Tasks by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weekly Created vs Completed -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Weekly Created vs Completed</h3>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Priority Breakdown -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Tasks by Priority</h3>
+                    <div class="chart-container">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Category Breakdown -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Tasks by Category (Last 30 Days)</h3>
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
+        <!-- Overview Tab -->
+        <div id="overview-content" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Completion Rate Trend -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Completion Rate Trend (Last 30 Days)</h3>
+                    <div class="chart-container">
+                        <canvas id="completionRateChart"></canvas>
+                    </div>
+                </div>
 
-        <!-- Priority Breakdown -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Tasks by Priority (Last 30 Days)</h3>
-            <div class="chart-container">
-                <canvas id="priorityChart"></canvas>
+                <!-- Productivity Insights -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Productivity Insights</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <span class="font-medium text-gray-900">Best Day</span>
+                            </div>
+                            <span class="text-lg font-bold text-blue-600" id="bestDay">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <span class="font-medium text-gray-900">Most Productive Time</span>
+                            </div>
+                            <span class="text-lg font-bold text-green-600" id="bestTime">-</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                </div>
+                                <span class="font-medium text-gray-900">Top Category</span>
+                            </div>
+                            <span class="text-lg font-bold text-purple-600" id="topCategory">-</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+.tab-button {
+    @apply flex items-center px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all duration-200;
+}
+
+.tab-button.active {
+    @apply text-blue-600 border-blue-600;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.chart-period-btn {
+    @apply px-3 py-1 text-sm font-medium rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors;
+}
+
+.chart-period-btn.active {
+    @apply bg-blue-600 text-white border-blue-600;
+}
+
+.kpi-card {
+    @apply bg-white rounded-2xl shadow-lg p-6 border border-gray-100 transition-transform hover:scale-105;
+}
+
+.kpi-card.primary { @apply border-l-4 border-l-blue-500; }
+.kpi-card.success { @apply border-l-4 border-l-green-500; }
+.kpi-card.warning { @apply border-l-4 border-l-yellow-500; }
+.kpi-card.danger { @apply border-l-4 border-l-red-500; }
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+</style>
+
 <script>
 let charts = {};
+let currentTab = 'daily';
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
+    initializeTabNavigation();
 });
+
+function initializeTabNavigation() {
+    // Set Daily Tasks as active by default
+    switchTab('daily');
+}
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName + '-content').classList.add('active');
+    
+    currentTab = tabName;
+    
+    // Load specific data for the tab
+    if (tabName === 'daily') {
+        loadDailyData();
+    } else if (tabName === 'monthly') {
+        loadMonthlyData();
+    } else if (tabName === 'overview') {
+        loadOverviewData();
+    }
+}
 
 async function loadDashboardData() {
     try {
@@ -171,6 +412,45 @@ async function loadDashboardData() {
     }
 }
 
+async function loadDailyData() {
+    try {
+        const response = await fetch('/dashboard/api/daily-data');
+        const result = await response.json();
+        
+        if (result.success) {
+            createDailyCharts(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading daily data:', error);
+    }
+}
+
+async function loadMonthlyData() {
+    try {
+        const response = await fetch('/dashboard/api/monthly-data');
+        const result = await response.json();
+        
+        if (result.success) {
+            createMonthlyCharts(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading monthly data:', error);
+    }
+}
+
+async function loadOverviewData() {
+    try {
+        const response = await fetch('/dashboard/api/overview-data');
+        const result = await response.json();
+        
+        if (result.success) {
+            createOverviewCharts(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading overview data:', error);
+    }
+}
+
 function updateKPIs(kpis) {
     document.getElementById('currentStreak').textContent = kpis.currentStreak + ' days';
     document.getElementById('monthlyCompletion').textContent = kpis.monthlyCompletionRate + '%';
@@ -180,142 +460,313 @@ function updateKPIs(kpis) {
 }
 
 function createCharts(data) {
-    // Completion Rate Trend Chart
-    const completionCtx = document.getElementById('completionRateChart').getContext('2d');
-    charts.completionRate = new Chart(completionCtx, {
-        type: 'line',
-        data: {
-            labels: data.completionRateTrend.map(item => item.date),
-            datasets: [{
-                label: 'Completion Rate (%)',
-                data: data.completionRateTrend.map(item => item.completionRate),
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    // Create initial charts based on current tab
+    if (currentTab === 'daily') {
+        createDailyCharts(data);
+    } else if (currentTab === 'monthly') {
+        createMonthlyCharts(data);
+    } else if (currentTab === 'overview') {
+        createOverviewCharts(data);
+    }
+}
+
+function createDailyCharts(data) {
+    // Daily Completion Chart
+    const dailyCtx = document.getElementById('dailyCompletionChart');
+    if (dailyCtx && !charts.dailyCompletion) {
+        charts.dailyCompletion = new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: data.dailyCompletionTrend?.map(item => item.date) || [],
+                datasets: [{
+                    label: 'Completion Rate (%)',
+                    data: data.dailyCompletionTrend?.map(item => item.completionRate) || [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
-    // Weekly Chart
-    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
-    charts.weekly = new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: data.weeklyData.map(item => item.week),
-            datasets: [
-                {
-                    label: 'Created',
-                    data: data.weeklyData.map(item => item.created),
-                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Completed',
-                    data: data.weeklyData.map(item => item.completed),
-                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                    borderColor: 'rgb(34, 197, 94)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
+    // Today's Distribution Chart
+    const todayCtx = document.getElementById('todayDistributionChart');
+    if (todayCtx && !charts.todayDistribution) {
+        charts.todayDistribution = new Chart(todayCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending', 'Overdue'],
+                datasets: [{
+                    data: [data.todayStats?.completed || 0, data.todayStats?.pending || 0, data.todayStats?.overdue || 0],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff'
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Update productivity score
+    const productivityScore = data.todayStats?.productivityScore || 0;
+    document.getElementById('productivityScore').textContent = productivityScore + '%';
+    
+    // Update productivity circle
+    const circle = document.getElementById('productivityCircle');
+    if (circle) {
+        const circumference = 2 * Math.PI * 15.9155;
+        const offset = circumference - (productivityScore / 100) * circumference;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = offset;
+    }
+}
+
+function createMonthlyCharts(data) {
+    // Monthly Completion Chart
+    const monthlyCtx = document.getElementById('monthlyCompletionChart');
+    if (monthlyCtx && !charts.monthlyCompletion) {
+        charts.monthlyCompletion = new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: data.monthlyTrend?.map(item => item.month) || [],
+                datasets: [{
+                    label: 'Completion Rate (%)',
+                    data: data.monthlyTrend?.map(item => item.completionRate) || [],
+                    backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                    borderColor: 'rgb(147, 51, 234)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     // Category Chart
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    charts.category = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: data.categoryBreakdown.map(item => item.category),
-            datasets: [{
-                data: data.categoryBreakdown.map(item => item.count),
-                backgroundColor: [
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(34, 197, 94, 0.8)',
-                    'rgba(251, 191, 36, 0.8)',
-                    'rgba(239, 68, 68, 0.8)',
-                    'rgba(168, 85, 247, 0.8)',
-                    'rgba(236, 72, 153, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(107, 114, 128, 0.8)'
-                ],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx && !charts.category) {
+        charts.category = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.categoryBreakdown?.map(item => item.category) || [],
+                datasets: [{
+                    data: data.categoryBreakdown?.map(item => item.count) || [],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(107, 114, 128, 0.8)'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart');
+    if (weeklyCtx && !charts.weekly) {
+        charts.weekly = new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: data.weeklyData?.map(item => item.week) || [],
+                datasets: [
+                    {
+                        label: 'Created',
+                        data: data.weeklyData?.map(item => item.created) || [],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Completed',
+                        data: data.weeklyData?.map(item => item.completed) || [],
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 
     // Priority Chart
-    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-    charts.priority = new Chart(priorityCtx, {
-        type: 'doughnut',
-        data: {
-            labels: data.priorityBreakdown.map(item => item.priority),
-            datasets: [{
-                data: data.priorityBreakdown.map(item => item.count),
-                backgroundColor: [
-                    'rgba(34, 197, 94, 0.8)',
-                    'rgba(251, 191, 36, 0.8)',
-                    'rgba(239, 68, 68, 0.8)'
-                ],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    const priorityCtx = document.getElementById('priorityChart');
+    if (priorityCtx && !charts.priority) {
+        charts.priority = new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.priorityBreakdown?.map(item => item.priority) || [],
+                datasets: [{
+                    data: data.priorityBreakdown?.map(item => item.count) || [],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
+        });
+    }
+}
+
+function createOverviewCharts(data) {
+    // Completion Rate Trend Chart
+    const completionCtx = document.getElementById('completionRateChart');
+    if (completionCtx && !charts.completionRate) {
+        charts.completionRate = new Chart(completionCtx, {
+            type: 'line',
+            data: {
+                labels: data.completionRateTrend?.map(item => item.date) || [],
+                datasets: [{
+                    label: 'Completion Rate (%)',
+                    data: data.completionRateTrend?.map(item => item.completionRate) || [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Update insights
+    document.getElementById('bestDay').textContent = data.insights?.bestDay || '-';
+    document.getElementById('bestTime').textContent = data.insights?.bestTime || '-';
+    document.getElementById('topCategory').textContent = data.insights?.topCategory || '-';
+}
+
+function updateDailyChart(days) {
+    // Update chart period buttons
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.classList.remove('active');
     });
+    document.querySelector(`[data-period="${days}"]`).classList.add('active');
+    
+    // Here you would typically fetch new data and update the chart
+    console.log(`Updating daily chart for ${days} days`);
+}
+
+function updateMonthlyChart(months) {
+    // Update chart period buttons
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-period="${months}"]`).classList.add('active');
+    
+    // Here you would typically fetch new data and update the chart
+    console.log(`Updating monthly chart for ${months} months`);
 }
 
 function refreshDashboard() {

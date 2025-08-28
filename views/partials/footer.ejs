@@ -118,6 +118,65 @@
     <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
+    <!-- Reward Modal -->
+    <div id="rewardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
+            <div class="relative">
+                <!-- Background Image -->
+                <div class="h-48 bg-cover bg-center rounded-t-2xl relative overflow-hidden">
+                    <img id="rewardImage" src="" alt="Motivational Background" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                </div>
+                
+                <!-- Close Button -->
+                <button onclick="closeRewardModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                
+                <!-- Content -->
+                <div class="p-6">
+                    <div class="text-center">
+                        <!-- Achievement Badge (if any) -->
+                        <div id="achievementBadge" class="hidden mb-4">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full text-2xl mb-2">
+                                <span id="badgeIcon"></span>
+                            </div>
+                            <h3 id="badgeName" class="text-lg font-bold text-gray-900 mb-1"></h3>
+                            <p id="badgeDescription" class="text-sm text-gray-600"></p>
+                        </div>
+                        
+                        <!-- Quote -->
+                        <div class="mb-4">
+                            <p id="rewardQuote" class="text-lg font-semibold text-gray-900 mb-2 leading-relaxed"></p>
+                            <p id="rewardAuthor" class="text-sm text-gray-600 italic"></p>
+                        </div>
+                        
+                        <!-- Streak Info -->
+                        <div id="streakInfo" class="hidden mb-4">
+                            <div class="bg-gradient-to-r from-orange-400 to-red-500 text-white px-4 py-2 rounded-full inline-block">
+                                <i class="fas fa-fire mr-2"></i>
+                                <span id="streakCount"></span> Day Streak!
+                            </div>
+                        </div>
+                        
+                        <!-- Milestone Info -->
+                        <div id="milestoneInfo" class="hidden mb-4">
+                            <div class="bg-gradient-to-r from-purple-400 to-pink-500 text-white px-4 py-2 rounded-full inline-block">
+                                <i class="fas fa-trophy mr-2"></i>
+                                <span id="milestoneText"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Button -->
+                        <button onclick="closeRewardModal()" class="bg-gradient-to-r from-[#00CED1] to-[#20B2AA] text-white px-6 py-3 rounded-lg hover:from-[#00B8BA] hover:to-[#1CA0A0] transition-all duration-200 shadow-md hover:shadow-lg font-medium">
+                            <i class="fas fa-heart mr-2"></i>Keep Going!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Back to Top functionality
         const backToTopBtn = document.getElementById('backToTop');
@@ -216,6 +275,9 @@
                 }, 300);
             }, 5000);
         });
+
+        // Check for reward data in flash messages
+        checkForRewards();
 
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -344,6 +406,119 @@
                 
                 // Submit the form
                 form.submit();
+            }
+        }
+
+        // Reward Modal Functions
+        function showRewardModal(rewardData) {
+            console.log('showRewardModal called with:', rewardData);
+            const modal = document.getElementById('rewardModal');
+            const image = document.getElementById('rewardImage');
+            const quote = document.getElementById('rewardQuote');
+            const author = document.getElementById('rewardAuthor');
+            const achievementBadge = document.getElementById('achievementBadge');
+            const badgeIcon = document.getElementById('badgeIcon');
+            const badgeName = document.getElementById('badgeName');
+            const badgeDescription = document.getElementById('badgeDescription');
+            const streakInfo = document.getElementById('streakInfo');
+            const streakCount = document.getElementById('streakCount');
+            const milestoneInfo = document.getElementById('milestoneInfo');
+            const milestoneText = document.getElementById('milestoneText');
+
+            // Set quote and author
+            if (rewardData.quote) {
+                quote.textContent = rewardData.quote;
+                author.textContent = `- ${rewardData.author}`;
+            }
+
+            // Set background image
+            if (rewardData.image) {
+                image.src = rewardData.image;
+            }
+
+            // Show achievement badge if available
+            if (rewardData.achievement) {
+                achievementBadge.classList.remove('hidden');
+                badgeIcon.textContent = rewardData.achievement.icon;
+                badgeName.textContent = rewardData.achievement.name;
+                badgeDescription.textContent = rewardData.achievement.description;
+                badgeIcon.className = `text-2xl ${rewardData.achievement.color} rounded-full p-2`;
+            } else {
+                achievementBadge.classList.add('hidden');
+            }
+
+            // Show streak info if available
+            if (rewardData.streak) {
+                streakInfo.classList.remove('hidden');
+                streakCount.textContent = rewardData.streak;
+            } else {
+                streakInfo.classList.add('hidden');
+            }
+
+            // Show milestone info if available
+            if (rewardData.milestone) {
+                milestoneInfo.classList.remove('hidden');
+                milestoneText.textContent = rewardData.milestone;
+            } else {
+                milestoneInfo.classList.add('hidden');
+            }
+
+            // Show modal with animation
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                const modalContent = modal.querySelector('.bg-white');
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                closeRewardModal();
+            }, 5000);
+        }
+
+        function closeRewardModal() {
+            const modal = document.getElementById('rewardModal');
+            const modalContent = modal.querySelector('.bg-white');
+            
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function checkForRewards() {
+            // Check if there's reward data in the page
+            const rewardData = window.rewardData;
+            console.log('Checking for rewards, rewardData:', rewardData);
+            if (rewardData) {
+                console.log('Showing reward modal with data:', rewardData);
+                showRewardModal(rewardData);
+                delete window.rewardData;
+            } else {
+                console.log('No reward data found');
+            }
+        }
+
+        // Handle task completion rewards via AJAX
+        function handleTaskCompletionRewards(response) {
+            if (response.rewards) {
+                const rewardData = {
+                    quote: response.rewards.motivationalQuote?.quote,
+                    author: response.rewards.motivationalQuote?.author,
+                    image: response.rewards.motivationalQuote?.image,
+                    streak: response.rewards.currentStreak,
+                    milestone: response.rewards.milestoneMessage?.quote
+                };
+
+                // Show achievement if available
+                if (response.rewards.newAchievements && response.rewards.newAchievements.length > 0) {
+                    rewardData.achievement = response.rewards.newAchievements[0];
+                }
+
+                showRewardModal(rewardData);
             }
         }
     </script>

@@ -424,6 +424,220 @@ class AnalyticsService {
       }
     };
   }
+
+  // Get today's task statistics
+  async getTodayStats(userId) {
+    const today = dayjs().startOf('day');
+    const tomorrow = today.add(1, 'day');
+
+    const result = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $gte: today.toDate(), $lt: tomorrow.toDate() },
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          completed: {
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+          },
+          overdue: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$status", "pending"] },
+                    { $lt: ["$date", new Date()] }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const stats = result[0] || { total: 0, completed: 0, pending: 0, overdue: 0 };
+    return stats;
+  }
+
+  // Get productivity score for today
+  async getProductivityScore(userId) {
+    const today = dayjs().startOf('day');
+    const tomorrow = today.add(1, 'day');
+
+    const result = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $gte: today.toDate(), $lt: tomorrow.toDate() },
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          completed: {
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    const stats = result[0] || { total: 0, completed: 0 };
+    const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
+    
+    // Calculate productivity score based on completion rate and efficiency
+    let productivityScore = completionRate;
+    
+    // Bonus for completing all tasks
+    if (stats.completed === stats.total && stats.total > 0) {
+      productivityScore += 10;
+    }
+    
+    // Penalty for overdue tasks
+    const overdueResult = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $lt: new Date() },
+          status: "pending",
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          overdueCount: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    const overdueCount = overdueResult[0]?.overdueCount || 0;
+    productivityScore = Math.max(0, productivityScore - (overdueCount * 5));
+    
+    return Math.round(Math.min(100, productivityScore));
+  }
+
+  // Get monthly trend data
+  async getMonthlyTrend(userId, months = 12) {
+    const endDate = dayjs().endOf('month');
+    const startDate = endDate.subtract(months - 1, 'month').startOf('month');
+
+    const result = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$date" },
+            month: { $month: "$date" }
+          },
+          total: { $sum: 1 },
+          completed: {
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+          }
+        }
+      },
+      {
+        $project: {
+          month: {
+            $concat: [
+              { $toString: "$_id.year" },
+              "-",
+              { $toString: "$_id.month" }
+            ]
+          },
+          total: 1,
+          completed: 1,
+          completionRate: {
+            $cond: [
+              { $eq: ["$total", 0] },
+              0,
+              { $multiply: [{ $divide: ["$completed", "$total"] }, 100] }
+            ]
+          }
+        }
+      },
+      { $sort: { month: 1 } }
+    ]);
+
+    return result;
+  }
+
+  // Get productivity insights
+  async getProductivityInsights(userId) {
+    const thirtyDaysAgo = dayjs().subtract(30, 'days');
+
+    // Get best day of the week
+    const bestDayResult = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $gte: thirtyDaysAgo.toDate() },
+          status: "completed",
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: { $dayOfWeek: "$date" },
+          completedCount: { $sum: 1 }
+        }
+      },
+      { $sort: { completedCount: -1 } },
+      { $limit: 1 }
+    ]);
+
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const bestDay = bestDayResult[0] ? dayNames[bestDayResult[0]._id - 1] : 'N/A';
+
+    // Get most productive time (simplified - could be enhanced with actual time data)
+    const bestTime = 'Morning (9-12 AM)'; // Placeholder
+
+    // Get top category
+    const topCategoryResult = await Task.aggregate([
+      {
+        $match: {
+          userId: Task.base.Types.ObjectId(userId),
+          date: { $gte: thirtyDaysAgo.toDate() },
+          status: "completed",
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: "$category",
+          completedCount: { $sum: 1 }
+        }
+      },
+      { $sort: { completedCount: -1 } },
+      { $limit: 1 }
+    ]);
+
+    const topCategory = topCategoryResult[0] ? topCategoryResult[0]._id : 'N/A';
+
+    return {
+      bestDay,
+      bestTime,
+      topCategory
+    };
+  }
 }
 
 module.exports = new AnalyticsService();

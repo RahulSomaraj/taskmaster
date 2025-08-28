@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const rewardsService = require('../services/rewards.service');
 const bcrypt = require('bcrypt');
 
 class AuthController {
@@ -6,7 +7,7 @@ class AuthController {
   showLogin(req, res) {
     res.render('auth/login', {
       title: 'Login',
-      user: null
+      user: null,
     });
   }
 
@@ -14,7 +15,7 @@ class AuthController {
   showRegister(req, res) {
     res.render('auth/register', {
       title: 'Register',
-      user: null
+      user: null,
     });
   }
 
@@ -28,7 +29,7 @@ class AuthController {
       if (!user) {
         req.session.flash = {
           type: 'error',
-          message: 'Invalid email or password.'
+          message: 'Invalid email or password.',
         };
         return res.redirect('/auth/login');
       }
@@ -38,7 +39,7 @@ class AuthController {
       if (!isValidPassword) {
         req.session.flash = {
           type: 'error',
-          message: 'Invalid email or password.'
+          message: 'Invalid email or password.',
         };
         return res.redirect('/auth/login');
       }
@@ -47,18 +48,21 @@ class AuthController {
       req.session.userId = user._id;
       req.session.user = user.toPublicJSON();
 
+      // Get motivational quote for login
+      const motivationalQuote = rewardsService.getRandomQuote('login');
+
       req.session.flash = {
         type: 'success',
-        message: `Welcome back, ${user.name}!`
+        message: `Welcome back, ${user.name}!`,
+        motivationalQuote: motivationalQuote,
       };
 
       res.redirect('/');
-
     } catch (error) {
       console.error('Login error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred during login. Please try again.'
+        message: 'An error occurred during login. Please try again.',
       };
       res.redirect('/auth/login');
     }
@@ -74,7 +78,7 @@ class AuthController {
       if (existingUser) {
         req.session.flash = {
           type: 'error',
-          message: 'A user with this email already exists.'
+          message: 'A user with this email already exists.',
         };
         return res.redirect('/auth/register');
       }
@@ -83,7 +87,7 @@ class AuthController {
       const user = new User({
         name,
         email,
-        password // This will be hashed by the virtual setter
+        password, // This will be hashed by the virtual setter
       });
 
       await user.save();
@@ -94,16 +98,15 @@ class AuthController {
 
       req.session.flash = {
         type: 'success',
-        message: `Welcome, ${user.name}! Your account has been created successfully.`
+        message: `Welcome, ${user.name}! Your account has been created successfully.`,
       };
 
       res.redirect('/');
-
     } catch (error) {
       console.error('Registration error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred during registration. Please try again.'
+        message: 'An error occurred during registration. Please try again.',
       };
       res.redirect('/auth/register');
     }
@@ -111,7 +114,7 @@ class AuthController {
 
   // Handle user logout
   logout(req, res) {
-    req.session.destroy((err) => {
+    req.session.destroy(err => {
       if (err) {
         console.error('Logout error:', err);
       }
@@ -126,21 +129,20 @@ class AuthController {
       if (!user) {
         req.session.flash = {
           type: 'error',
-          message: 'User not found.'
+          message: 'User not found.',
         };
         return res.redirect('/');
       }
 
       res.render('auth/profile', {
         title: 'Profile',
-        user: user.toPublicJSON()
+        user: user.toPublicJSON(),
       });
-
     } catch (error) {
       console.error('Profile error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while loading your profile.'
+        message: 'An error occurred while loading your profile.',
       };
       res.redirect('/');
     }
@@ -155,7 +157,7 @@ class AuthController {
       if (!user) {
         req.session.flash = {
           type: 'error',
-          message: 'User not found.'
+          message: 'User not found.',
         };
         return res.redirect('/auth/profile');
       }
@@ -166,7 +168,7 @@ class AuthController {
         if (existingUser) {
           req.session.flash = {
             type: 'error',
-            message: 'A user with this email already exists.'
+            message: 'A user with this email already exists.',
           };
           return res.redirect('/auth/profile');
         }
@@ -182,16 +184,15 @@ class AuthController {
 
       req.session.flash = {
         type: 'success',
-        message: 'Profile updated successfully.'
+        message: 'Profile updated successfully.',
       };
 
       res.redirect('/auth/profile');
-
     } catch (error) {
       console.error('Profile update error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while updating your profile.'
+        message: 'An error occurred while updating your profile.',
       };
       res.redirect('/auth/profile');
     }
@@ -205,7 +206,7 @@ class AuthController {
       if (newPassword !== confirmPassword) {
         req.session.flash = {
           type: 'error',
-          message: 'New passwords do not match.'
+          message: 'New passwords do not match.',
         };
         return res.redirect('/auth/profile');
       }
@@ -214,7 +215,7 @@ class AuthController {
       if (!user) {
         req.session.flash = {
           type: 'error',
-          message: 'User not found.'
+          message: 'User not found.',
         };
         return res.redirect('/auth/profile');
       }
@@ -224,7 +225,7 @@ class AuthController {
       if (!isValidPassword) {
         req.session.flash = {
           type: 'error',
-          message: 'Current password is incorrect.'
+          message: 'Current password is incorrect.',
         };
         return res.redirect('/auth/profile');
       }
@@ -235,16 +236,15 @@ class AuthController {
 
       req.session.flash = {
         type: 'success',
-        message: 'Password changed successfully.'
+        message: 'Password changed successfully.',
       };
 
       res.redirect('/auth/profile');
-
     } catch (error) {
       console.error('Password change error:', error);
       req.session.flash = {
         type: 'error',
-        message: 'An error occurred while changing your password.'
+        message: 'An error occurred while changing your password.',
       };
       res.redirect('/auth/profile');
     }

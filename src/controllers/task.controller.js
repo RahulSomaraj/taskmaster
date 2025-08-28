@@ -1,4 +1,5 @@
 const taskService = require('../services/task.service');
+const rewardsService = require('../services/rewards.service');
 const dayjs = require('dayjs');
 
 class TaskController {
@@ -158,9 +159,13 @@ class TaskController {
       const taskData = req.validatedData;
       await taskService.createTask(req.user._id, taskData);
 
+      // Get motivational quote for task creation (different each time)
+      const motivationalQuote = rewardsService.getRandomQuote('taskCreated');
+
       req.session.flash = {
         type: 'success',
         message: 'Task created successfully.',
+        motivationalQuote: motivationalQuote,
       };
 
       res.redirect(`/tasks/daily?date=${dayjs(taskData.date).format('YYYY-MM-DD')}`);
@@ -205,13 +210,89 @@ class TaskController {
     }
   }
 
+  // Reset task (mark as pending)
+  async resetTask(req, res) {
+    try {
+      const taskId = req.params.id;
+      const task = await taskService.resetTask(taskId, req.user._id);
+
+      // Get motivational quote for task reset
+      const motivationalQuote = rewardsService.getRandomQuote('taskReset');
+
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+        return res.json({
+          success: true,
+          message: 'Task reset successfully.',
+          task: {
+            id: task._id,
+            status: task.status,
+            completedAt: task.completedAt,
+          },
+          rewards: {
+            motivationalQuote,
+          },
+        });
+      }
+
+      req.session.flash = {
+        type: 'success',
+        message: 'Task reset successfully.',
+        motivationalQuote: motivationalQuote,
+      };
+
+      res.redirect('back');
+    } catch (error) {
+      console.error('Reset task error:', error);
+
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+        return res.status(400).json({
+          success: false,
+          message: 'An error occurred while resetting the task.',
+        });
+      }
+
+      req.session.flash = {
+        type: 'error',
+        message: 'An error occurred while resetting the task.',
+      };
+      res.redirect('back');
+    }
+  }
+
   // Complete task
   async completeTask(req, res) {
     try {
       const taskId = req.params.id;
       const task = await taskService.completeTask(taskId, req.user._id);
 
-      if (req.xhr) {
+      // Get user stats for achievements
+      const userStats = await taskService.getTaskStats(
+        req.user._id,
+        dayjs().subtract(30, 'days').toDate(),
+        new Date()
+      );
+      const completedTasks = await taskService.getTasksForDateRange(
+        req.user._id,
+        dayjs().subtract(30, 'days').toDate(),
+        new Date()
+      );
+      const currentStreak = rewardsService.calculateStreak(
+        completedTasks.filter(t => t.status === 'completed')
+      );
+
+      // Get motivational quote and check for achievements (different each time)
+      const motivationalQuote = rewardsService.getRandomQuote('taskCompleted');
+      const streakMessage = rewardsService.getStreakMessage(currentStreak);
+      const milestoneMessage = rewardsService.getMilestoneMessage(userStats.completed);
+      const newAchievements = rewardsService.checkAchievements({
+        totalCompleted: userStats.completed,
+        currentStreak: currentStreak,
+      });
+
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
         return res.json({
           success: true,
           message: 'Task completed successfully.',
@@ -220,19 +301,31 @@ class TaskController {
             status: task.status,
             completedAt: task.completedAt,
           },
+          rewards: {
+            motivationalQuote,
+            streakMessage,
+            milestoneMessage,
+            newAchievements,
+            currentStreak,
+          },
         });
       }
 
       req.session.flash = {
         type: 'success',
         message: 'Task completed successfully.',
+        motivationalQuote: motivationalQuote,
+        streakMessage: streakMessage,
+        milestoneMessage: milestoneMessage,
+        newAchievements: newAchievements,
       };
 
       res.redirect('back');
     } catch (error) {
       console.error('Complete task error:', error);
 
-      if (req.xhr) {
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
         return res.status(400).json({
           success: false,
           message: 'An error occurred while completing the task.',
@@ -288,47 +381,6 @@ class TaskController {
     }
   }
 
-  // Reset task to pending
-  async resetTask(req, res) {
-    try {
-      const taskId = req.params.id;
-      const task = await taskService.resetTask(taskId, req.user._id);
-
-      if (req.xhr) {
-        return res.json({
-          success: true,
-          message: 'Task reset to pending.',
-          task: {
-            id: task._id,
-            status: task.status,
-          },
-        });
-      }
-
-      req.session.flash = {
-        type: 'success',
-        message: 'Task reset to pending.',
-      };
-
-      res.redirect('back');
-    } catch (error) {
-      console.error('Reset task error:', error);
-
-      if (req.xhr) {
-        return res.status(400).json({
-          success: false,
-          message: 'An error occurred while resetting the task.',
-        });
-      }
-
-      req.session.flash = {
-        type: 'error',
-        message: 'An error occurred while resetting the task.',
-      };
-      res.redirect('back');
-    }
-  }
-
   // Delete task
   async deleteTask(req, res) {
     try {
@@ -343,7 +395,8 @@ class TaskController {
         return res.redirect('/tasks/daily');
       }
 
-      if (req.xhr) {
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
         return res.json({
           success: true,
           message: 'Task deleted successfully.',
@@ -359,7 +412,8 @@ class TaskController {
     } catch (error) {
       console.error('Delete task error:', error);
 
-      if (req.xhr) {
+      // Check if it's an AJAX request (either xhr or fetch)
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
         return res.status(400).json({
           success: false,
           message: 'An error occurred while deleting the task.',
