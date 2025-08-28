@@ -37,11 +37,18 @@ router.post('/:id/cancel', taskController.cancelTask);
 // Reset task to pending
 router.post('/:id/reset', taskController.resetTask);
 
-// Delete task
+// Delete task (handles both DELETE and POST with _method=DELETE)
 router.delete('/:id', taskController.deleteTask);
+router.post('/:id', taskController.deleteTask);
 
 // Restore soft-deleted task
 router.post('/:id/restore', taskController.restoreTask);
+
+// Permanently delete task
+router.delete('/:id/permanent-delete', taskController.permanentDeleteTask);
+
+// Show individual task (must be last to avoid conflicting with other routes)
+router.get('/:id', taskController.showTask);
 
 // Bulk complete tasks
 router.post('/bulk/complete', taskController.bulkComplete);

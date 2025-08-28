@@ -114,10 +114,21 @@ class AuthController {
 
   // Handle user logout
   logout(req, res) {
+    // Clear session data
+    req.session.userId = null;
+    req.session.user = null;
+    
+    // Destroy the session
     req.session.destroy(err => {
       if (err) {
         console.error('Logout error:', err);
+        // Even if session destruction fails, redirect to login
+        return res.redirect('/auth/login');
       }
+      
+      // Clear any cookies that might be set
+      res.clearCookie('connect.sid');
+      
       res.redirect('/auth/login');
     });
   }

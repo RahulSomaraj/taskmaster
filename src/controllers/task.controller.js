@@ -153,6 +153,49 @@ class TaskController {
     }
   }
 
+  // Show individual task
+  async showTask(req, res) {
+    try {
+      const taskId = req.params.id;
+      const task = await taskService.getTaskById(taskId, req.user._id);
+
+      if (!task) {
+        req.session.flash = {
+          type: 'error',
+          message: 'Task not found.',
+        };
+        return res.redirect('/tasks/daily');
+      }
+
+      // Set isOverdue property
+      const now = new Date();
+      if (task.status === 'pending') {
+        const taskDate = new Date(task.date);
+        if (task.dueTime) {
+          const [hours, minutes] = task.dueTime.split(':');
+          taskDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        } else {
+          taskDate.setHours(23, 59, 59, 999);
+        }
+        task.isOverdue = now > taskDate;
+      } else {
+        task.isOverdue = false;
+      }
+
+      res.render('tasks/view', {
+        title: task.title,
+        task,
+      });
+    } catch (error) {
+      console.error('Show task error:', error);
+      req.session.flash = {
+        type: 'error',
+        message: 'An error occurred while loading the task.',
+      };
+      res.redirect('/tasks/daily');
+    }
+  }
+
   // Create new task
   async createTask(req, res) {
     try {
@@ -383,6 +426,11 @@ class TaskController {
 
   // Delete task
   async deleteTask(req, res) {
+    console.log('Delete task called with ID:', req.params.id);
+    console.log('Request method:', req.method);
+    console.log('Request body:', req.body);
+    console.log('User ID:', req.user._id);
+
     try {
       const taskId = req.params.id;
       const task = await taskService.deleteTask(taskId, req.user._id);
@@ -467,6 +515,43 @@ class TaskController {
         message: 'An error occurred while restoring the task.',
       };
       res.redirect('back');
+    }
+  }
+
+  // Permanently delete task
+  async permanentDeleteTask(req, res) {
+    try {
+      const taskId = req.params.id;
+      const task = await taskService.permanentDeleteTask(taskId, req.user._id);
+
+      if (req.xhr) {
+        return res.json({
+          success: true,
+          message: 'Task permanently deleted successfully.',
+        });
+      }
+
+      req.session.flash = {
+        type: 'success',
+        message: 'Task permanently deleted successfully.',
+      };
+
+      res.redirect('/tasks/deleted');
+    } catch (error) {
+      console.error('Permanent delete task error:', error);
+
+      if (req.xhr) {
+        return res.status(400).json({
+          success: false,
+          message: 'An error occurred while permanently deleting the task.',
+        });
+      }
+
+      req.session.flash = {
+        type: 'error',
+        message: 'An error occurred while permanently deleting the task.',
+      };
+      res.redirect('/tasks/deleted');
     }
   }
 

@@ -148,6 +148,15 @@ class TaskService {
     return await task.restore();
   }
 
+  // Permanently delete a task
+  async permanentDeleteTask(taskId, userId) {
+    const task = await Task.findOne({ _id: taskId, userId, deletedAt: { $ne: null } });
+    if (!task) {
+      throw new Error('Task not found or not deleted');
+    }
+    return await Task.findByIdAndDelete(taskId);
+  }
+
   // Get overdue tasks
   async getOverdueTasks(userId) {
     return await Task.getOverdueTasks(userId);

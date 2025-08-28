@@ -104,6 +104,7 @@
                                     <i class="fas fa-user mr-2"></i>Profile
                                 </a>
                                 <form method="POST" action="/auth/logout" class="block" id="logoutForm">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200" onclick="return confirmLogout(event)">
                                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                                     </button>
